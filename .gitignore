@@ -1,2 +1,5 @@
+# Build output — lives only on the release branch
+templates.json
+
 .vscode/
 Thumbs.db

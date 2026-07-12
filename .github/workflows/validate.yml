@@ -1,0 +1,46 @@
+name: Validate & Build Catalog
+
+on:
+  push:
+    branches: [main]
+    paths: ["templates/**"]
+  pull_request:
+    paths: ["templates/**"]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate and build catalog
+        shell: pwsh
+        run: ./scripts/build.ps1
+
+      - name: Verify output is valid JSON
+        shell: pwsh
+        run: Get-Content templates.json -Raw | ConvertFrom-Json | Out-Null
+
+      - name: Deploy to release branch
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          cp templates.json /tmp/templates.json
+
+          git fetch origin release || true
+          if git rev-parse --verify origin/release >/dev/null 2>&1; then
+            git checkout release
+          else
+            git checkout --orphan release
+            git rm -rf .
+          fi
+
+          cp /tmp/templates.json templates.json
+          git add templates.json
+          git diff --cached --quiet || git commit -m "build: update templates.json ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+          git push origin release
