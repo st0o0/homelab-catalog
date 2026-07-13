@@ -1,0 +1,29 @@
+services:
+  bifrost:
+    image: ghcr.io/st0o0/bifrost:latest
+    container_name: bifrost
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      # WireGuard identity
+      - BIFROST_PRIVATE_KEY=${BIFROST_PRIVATE_KEY}
+      - BIFROST_ADDRESS=${BIFROST_ADDRESS}
+      - BIFROST_LISTEN_PORT=${BIFROST_LISTEN_PORT:-0}
+      - BIFROST_MTU=${BIFROST_MTU:-1420}
+      # Peer
+      - BIFROST_PEER_PUBLIC_KEY=${BIFROST_PEER_PUBLIC_KEY}
+      - BIFROST_PEER_ENDPOINT=${BIFROST_PEER_ENDPOINT}
+      - BIFROST_PEER_ALLOWED_IPS=${BIFROST_PEER_ALLOWED_IPS}
+      - BIFROST_PEER_KEEPALIVE=${BIFROST_PEER_KEEPALIVE:-25}
+      - BIFROST_PEER_PRESHARED_KEY=${BIFROST_PEER_PRESHARED_KEY:-}
+      # Runtime
+      - BIFROST_INTERFACE=${BIFROST_INTERFACE:-wg0}
+      - BIFROST_CHECK_INTERVAL=${BIFROST_CHECK_INTERVAL:-30}
+      - BIFROST_STALE_AFTER=${BIFROST_STALE_AFTER:-135}
+      - BIFROST_RESOLVE=${BIFROST_RESOLVE:-on}
+      - BIFROST_RECONNECT=${BIFROST_RECONNECT:-on}
+      - BIFROST_HEALTHCHECK=${BIFROST_HEALTHCHECK:-on}
+      - BIFROST_PROBE=${BIFROST_PROBE:-off}

@@ -1,0 +1,29 @@
+{
+  "type": 3,
+  "title": "Bifrost",
+  "description": "WireGuard tunnel sidecar with automatic DDNS re-resolution, reconnect, and liveness probes",
+  "logo": "https://raw.githubusercontent.com/st0o0/bifrost/main/docs/static/img/favicon.png",
+  "categories": ["Networking"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/bifrost/docker-compose.yml"
+  },
+  "env": [
+    { "name": "BIFROST_PRIVATE_KEY", "label": "WireGuard Private Key", "default": "" },
+    { "name": "BIFROST_ADDRESS", "label": "Tunnel Address (CIDR)", "default": "10.13.13.2/32" },
+    { "name": "BIFROST_LISTEN_PORT", "label": "Listen Port", "default": "0" },
+    { "name": "BIFROST_MTU", "label": "MTU", "default": "1420" },
+    { "name": "BIFROST_PEER_PUBLIC_KEY", "label": "Peer Public Key", "default": "" },
+    { "name": "BIFROST_PEER_PRESHARED_KEY", "label": "Peer Preshared Key (optional)", "default": "" },
+    { "name": "BIFROST_PEER_ENDPOINT", "label": "Peer Endpoint (host:port)", "default": "" },
+    { "name": "BIFROST_PEER_ALLOWED_IPS", "label": "Peer Allowed IPs", "default": "0.0.0.0/0" },
+    { "name": "BIFROST_PEER_KEEPALIVE", "label": "Persistent Keepalive (seconds)", "default": "25" },
+    { "name": "BIFROST_INTERFACE", "label": "Interface Name", "default": "wg0" },
+    { "name": "BIFROST_RESOLVE", "label": "DDNS Re-Resolution", "default": "on" },
+    { "name": "BIFROST_RECONNECT", "label": "Auto Reconnect", "default": "on" },
+    { "name": "BIFROST_HEALTHCHECK", "label": "Healthcheck", "default": "on" },
+    { "name": "BIFROST_PROBE", "label": "Liveness Probe", "default": "off" },
+    { "name": "EXPOSED_PORT", "label": "Exposed Port", "default": "8200" }
+  ],
+  "note": "Deploys 1 container with NET_ADMIN capability. Uses the kernel WireGuard module (Linux 5.6+). If your host lacks the module, add /dev/net/tun as a device for the built-in userspace fallback. Services using the tunnel connect via network_mode: service:bifrost."
+}

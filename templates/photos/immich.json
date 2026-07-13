@@ -1,6 +1,6 @@
 {
   "type": 3,
-  "title": "Immich (Full Stack)",
+  "title": "Immich",
   "description": "Self-hosted photo management with server, ML, database, and cache",
   "logo": "https://raw.githubusercontent.com/immich-app/immich/main/docs/static/img/favicon.png",
   "categories": ["Photos"],
