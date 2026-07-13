@@ -6,7 +6,7 @@
   "categories": ["Networking"],
   "repository": {
     "url": "https://github.com/st0o0/homelab-catalog",
-    "stackfile": "stacks/bifrost/docker-compose.yml"
+    "stackfile": "stacks/bifrost/compose.yml"
   },
   "env": [
     { "name": "BIFROST_PRIVATE_KEY", "label": "WireGuard Private Key", "default": "" },

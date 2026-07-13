@@ -6,7 +6,7 @@
   "categories": ["Photos"],
   "repository": {
     "url": "https://github.com/st0o0/homelab-catalog",
-    "stackfile": "stacks/immich/docker-compose.yml"
+    "stackfile": "stacks/immich/compose.yml"
   },
   "env": [
     { "name": "DB_PASSWORD", "label": "Database Password", "default": "" },
