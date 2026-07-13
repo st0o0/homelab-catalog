@@ -11,7 +11,7 @@
       ],
       "repository": {
         "url": "https://github.com/st0o0/homelab-catalog",
-        "stackfile": "stacks/bifrost/docker-compose.yml"
+        "stackfile": "stacks/bifrost/compose.yml"
       },
       "env": [
         {
@@ -102,7 +102,7 @@
       ],
       "repository": {
         "url": "https://github.com/st0o0/homelab-catalog",
-        "stackfile": "stacks/immich/docker-compose.yml"
+        "stackfile": "stacks/immich/compose.yml"
       },
       "env": [
         {
