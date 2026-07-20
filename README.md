@@ -113,7 +113,7 @@ CI validates all templates and deploys the merged `templates.json` to the `relea
 | Productivity | Mealie, Actual Budget |
 | Backup | Duplicati |
 | Data | PostgreSQL, Redis, Valkey |
-| Observability | Grafana, VictoriaMetrics, Loki, Grafana Alloy |
+| Observability | Grafana, VictoriaMetrics, VictoriaLogs, Grafana Alloy |
 
 ## How It Works
 
