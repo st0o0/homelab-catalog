@@ -1,0 +1,24 @@
+{
+  "type": 3,
+  "title": "Observability Agent",
+  "description": "Alloy collector for remote servers shipping metrics and logs to the central stack through a Bifrost WireGuard tunnel",
+  "logo": "https://raw.githubusercontent.com/st0o0/bifrost/main/docs/static/img/favicon.png",
+  "categories": ["Observability", "Monitoring"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/observability-agent/compose.yml"
+  },
+  "env": [
+    { "name": "HOST_HOSTNAME", "label": "Host Label (unique per server)", "default": "" },
+    { "name": "SCRAPE_INTERVAL", "label": "Metrics Scrape Interval", "default": "30s" },
+    { "name": "BIFROST_PRIVATE_KEY", "label": "WireGuard Private Key", "default": "" },
+    { "name": "BIFROST_ADDRESS", "label": "Tunnel Address (CIDR)", "default": "10.13.13.2/32" },
+    { "name": "BIFROST_PEER_PUBLIC_KEY", "label": "Peer Public Key (central server)", "default": "" },
+    { "name": "BIFROST_PEER_ENDPOINT", "label": "Peer Endpoint (host:port)", "default": "" },
+    { "name": "BIFROST_PEER_ALLOWED_IPS", "label": "Peer Allowed IPs", "default": "10.13.13.0/24" },
+    { "name": "BIFROST_PEER_PRESHARED_KEY", "label": "Peer Preshared Key (optional)", "default": "" },
+    { "name": "REMOTE_WRITE_URL", "label": "VictoriaMetrics Remote Write URL", "default": "http://10.13.13.1:8428/api/v1/write" },
+    { "name": "LOGS_PUSH_URL", "label": "VictoriaLogs Push URL", "default": "http://10.13.13.1:9428/insert/loki/api/v1/push" }
+  ],
+  "note": "Deploys 2 containers: obs-agent-bifrost (WireGuard, NET_ADMIN) and obs-agent-alloy (network_mode: service:bifrost). Alloy mounts /var/log, /proc, /sys, / (read-only) and the docker socket. Set VM_BIND_IP/VLOGS_BIND_IP on the central Observability stack to its WireGuard IP. See stacks/observability-agent/README.md."
+}
