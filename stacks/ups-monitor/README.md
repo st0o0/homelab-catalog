@@ -116,6 +116,7 @@ Then `sudo systemctl enable --now nut-client`. When `upsd` on the Pi signals low
 | `HOST_HOSTNAME` | — (required) | `host` label on all metrics/logs |
 | `REMOTE_WRITE_URL` | — (required) | Central VictoriaMetrics remote write endpoint |
 | `LOGS_PUSH_URL` | — (required) | Central VictoriaLogs push endpoint (Loki protocol) |
+| `NUT_EXPORTER_TARGET` | `nut-exporter:9199` | Alloy scrape target for the NUT exporter (host:port) |
 | `NUT_SERVER` | `host.docker.internal` | NUT server address (`upsd` host) |
 | `NUT_PORT` | `3493` | NUT server port |
 | `NUT_USER` | — | NUT username (if `upsd` requires auth) |
