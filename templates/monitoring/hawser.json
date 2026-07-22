@@ -1,0 +1,19 @@
+{
+  "type": 3,
+  "title": "Hawser",
+  "description": "Dockhand agent for managing remote Docker environments",
+  "categories": ["Monitoring"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/hawser/compose.yml"
+  },
+  "env": [
+    { "name": "TOKEN", "label": "Agent Token (required)", "default": "" },
+    { "name": "AGENT_NAME", "label": "Agent Name", "default": "" },
+    { "name": "HAWSER_PORT", "label": "Published Port", "default": "2376" },
+    { "name": "DOCKER_SOCKET", "label": "Docker Socket Path", "default": "/var/run/docker.sock" },
+    { "name": "STACKS_PATH", "label": "Stacks Storage Path (host path or named volume)", "default": "hawser-stacks" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
+  ],
+  "note": "Deploys Hawser in standard mode. Port 2376 must be reachable from the central Dockhand server. A TOKEN is required when the port is exposed on a non-loopback address."
+}

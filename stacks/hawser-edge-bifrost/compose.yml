@@ -1,0 +1,59 @@
+# Keep container logs from growing unbounded
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  bifrost:
+    image: ghcr.io/st0o0/bifrost:latest
+    container_name: hawser-bifrost
+    restart: unless-stopped
+    logging: *default-logging
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      # WireGuard identity
+      - BIFROST_PRIVATE_KEY=${BIFROST_PRIVATE_KEY:?BIFROST_PRIVATE_KEY is required}
+      - BIFROST_ADDRESS=${BIFROST_ADDRESS:-10.13.13.2/32}
+      - BIFROST_LISTEN_PORT=${BIFROST_LISTEN_PORT:-0}
+      - BIFROST_MTU=${BIFROST_MTU:-1420}
+      # Peer (the central server)
+      - BIFROST_PEER_PUBLIC_KEY=${BIFROST_PEER_PUBLIC_KEY:?BIFROST_PEER_PUBLIC_KEY is required}
+      - BIFROST_PEER_ENDPOINT=${BIFROST_PEER_ENDPOINT:?BIFROST_PEER_ENDPOINT is required}
+      - BIFROST_PEER_ALLOWED_IPS=${BIFROST_PEER_ALLOWED_IPS:-10.13.13.0/24}
+      - BIFROST_PEER_KEEPALIVE=${BIFROST_PEER_KEEPALIVE:-25}
+      - BIFROST_PEER_PRESHARED_KEY=${BIFROST_PEER_PRESHARED_KEY:-}
+      # Runtime
+      - BIFROST_INTERFACE=${BIFROST_INTERFACE:-wg0}
+      - BIFROST_CHECK_INTERVAL=${BIFROST_CHECK_INTERVAL:-30}
+      - BIFROST_STALE_AFTER=${BIFROST_STALE_AFTER:-135}
+      - BIFROST_RESOLVE=${BIFROST_RESOLVE:-on}
+      - BIFROST_RECONNECT=${BIFROST_RECONNECT:-on}
+      - BIFROST_HEALTHCHECK=${BIFROST_HEALTHCHECK:-on}
+      - BIFROST_PROBE=${BIFROST_PROBE:-off}
+
+  hawser:
+    image: ghcr.io/finsys/hawser:0.2.46
+    container_name: hawser-edge
+    restart: unless-stopped
+    logging: *default-logging
+    network_mode: service:bifrost
+    environment:
+      - DOCKHAND_SERVER_URL=${DOCKHAND_SERVER_URL:?DOCKHAND_SERVER_URL is required}
+      - TOKEN=${TOKEN:?TOKEN is required}
+      - AGENT_NAME=${AGENT_NAME:-}
+      - HEARTBEAT_INTERVAL=${HEARTBEAT_INTERVAL:-30}
+      - TZ=${TZ:-Europe/Berlin}
+    volumes:
+      - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+      - ${STACKS_PATH:-hawser-stacks}:/data/stacks
+    depends_on:
+      bifrost:
+        condition: service_started
+
+volumes:
+  hawser-stacks:

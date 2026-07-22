@@ -1,0 +1,20 @@
+{
+  "type": 3,
+  "title": "Hawser (Edge)",
+  "description": "Dockhand Edge agent — outbound WebSocket, no inbound ports needed",
+  "categories": ["Monitoring"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/hawser-edge/compose.yml"
+  },
+  "env": [
+    { "name": "DOCKHAND_SERVER_URL", "label": "Dockhand Server URL (e.g. https://dockhand.example.com)", "default": "" },
+    { "name": "TOKEN", "label": "Edge Token", "default": "" },
+    { "name": "AGENT_NAME", "label": "Agent Name", "default": "" },
+    { "name": "HEARTBEAT_INTERVAL", "label": "Heartbeat Interval (seconds)", "default": "30" },
+    { "name": "DOCKER_SOCKET", "label": "Docker Socket Path", "default": "/var/run/docker.sock" },
+    { "name": "STACKS_PATH", "label": "Stacks Storage Path (host path or named volume)", "default": "hawser-stacks" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
+  ],
+  "note": "Deploys Hawser in Edge mode: initiates an outbound WebSocket connection to the central Dockhand server. No inbound ports required — works behind NAT and firewalls."
+}

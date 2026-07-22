@@ -43,7 +43,7 @@ Minimal template for a single container:
     { "bind": "/data/my-service", "container": "/config" }
   ],
   "env": [
-    { "name": "TZ", "label": "Timezone", "default": "Europe/Vienna" }
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
   ],
   "restart_policy": "unless-stopped"
 }
@@ -113,7 +113,7 @@ CI validates all templates and deploys the merged `templates.json` to the `relea
 | Productivity | Mealie, Actual Budget |
 | Backup | Duplicati |
 | Data | PostgreSQL, Redis, Valkey |
-| Observability | Grafana, VictoriaMetrics, Loki, Grafana Alloy |
+| Observability | Grafana, VictoriaMetrics, VictoriaLogs, Grafana Alloy, NUT Exporter |
 
 ## How It Works
 

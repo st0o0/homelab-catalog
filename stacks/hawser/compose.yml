@@ -1,0 +1,25 @@
+# Keep container logs from growing unbounded
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  hawser:
+    image: ghcr.io/finsys/hawser:0.2.46
+    container_name: hawser
+    restart: unless-stopped
+    logging: *default-logging
+    ports:
+      - "${HAWSER_PORT:-2376}:2376/tcp"
+    environment:
+      - TOKEN=${TOKEN:?TOKEN is required}
+      - AGENT_NAME=${AGENT_NAME:-}
+      - TZ=${TZ:-Europe/Berlin}
+    volumes:
+      - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+      - ${STACKS_PATH:-hawser-stacks}:/data/stacks
+
+volumes:
+  hawser-stacks:

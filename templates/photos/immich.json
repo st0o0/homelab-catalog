@@ -14,7 +14,7 @@
     { "name": "DB_DATABASE_NAME", "label": "Database Name", "default": "immich" },
     { "name": "UPLOAD_PATH", "label": "Upload Path on Host", "default": "/data/immich/upload" },
     { "name": "IMMICH_PORT", "label": "Exposed Port", "default": "2283" },
-    { "name": "TZ", "label": "Timezone", "default": "Europe/Vienna" }
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
   ],
   "note": "Deploys 4 containers: immich-server, immich-ml, postgres (pgvecto-rs), redis"
 }

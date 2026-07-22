@@ -1,0 +1,27 @@
+{
+  "type": 3,
+  "title": "Hawser Edge + Bifrost",
+  "description": "Dockhand Edge agent tunnelled through a Bifrost WireGuard connection",
+  "logo": "https://raw.githubusercontent.com/st0o0/bifrost/main/docs/static/img/favicon.png",
+  "categories": ["Monitoring", "Networking"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/hawser-edge-bifrost/compose.yml"
+  },
+  "env": [
+    { "name": "DOCKHAND_SERVER_URL", "label": "Dockhand Server URL (via tunnel, e.g. http://10.13.13.1:9000)", "default": "" },
+    { "name": "TOKEN", "label": "Edge Token", "default": "" },
+    { "name": "AGENT_NAME", "label": "Agent Name", "default": "" },
+    { "name": "HEARTBEAT_INTERVAL", "label": "Heartbeat Interval (seconds)", "default": "30" },
+    { "name": "DOCKER_SOCKET", "label": "Docker Socket Path", "default": "/var/run/docker.sock" },
+    { "name": "STACKS_PATH", "label": "Stacks Storage Path (host path or named volume)", "default": "hawser-stacks" },
+    { "name": "BIFROST_PRIVATE_KEY", "label": "WireGuard Private Key", "default": "" },
+    { "name": "BIFROST_ADDRESS", "label": "Tunnel Address (CIDR)", "default": "10.13.13.2/32" },
+    { "name": "BIFROST_PEER_PUBLIC_KEY", "label": "Peer Public Key (central server)", "default": "" },
+    { "name": "BIFROST_PEER_ENDPOINT", "label": "Peer Endpoint (host:port)", "default": "" },
+    { "name": "BIFROST_PEER_ALLOWED_IPS", "label": "Peer Allowed IPs", "default": "10.13.13.0/24" },
+    { "name": "BIFROST_PEER_PRESHARED_KEY", "label": "Peer Preshared Key (optional)", "default": "" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
+  ],
+  "note": "Deploys 2 containers: hawser-bifrost (WireGuard, NET_ADMIN) and hawser-edge (network_mode: service:bifrost). All Dockhand traffic flows through the WireGuard tunnel — nothing exposed on the public network. Set DOCKHAND_SERVER_URL to the Dockhand instance's tunnel IP (e.g. http://10.13.13.1:9000)."
+}

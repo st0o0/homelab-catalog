@@ -1,0 +1,31 @@
+{
+  "type": 3,
+  "title": "Observability",
+  "description": "Grafana, VictoriaMetrics, VictoriaLogs, and Alloy for metrics and system log ingestion",
+  "logo": "https://raw.githubusercontent.com/grafana/grafana/main/public/img/fav32.png",
+  "categories": ["Observability", "Monitoring"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/observability/compose.yml"
+  },
+  "env": [
+    { "name": "GRAFANA_ADMIN_PASSWORD", "label": "Grafana Admin Password", "default": "" },
+    { "name": "GRAFANA_ADMIN_USER", "label": "Grafana Admin User", "default": "admin" },
+    { "name": "GRAFANA_PORT", "label": "Grafana Port", "default": "3000" },
+    { "name": "VM_RETENTION", "label": "Metrics Retention", "default": "90d" },
+    { "name": "VL_RETENTION", "label": "Logs Retention", "default": "31d" },
+    { "name": "VL_MAX_DISK_GB", "label": "Logs Max Disk Usage GB (0 = unlimited)", "default": "0" },
+    { "name": "SCRAPE_INTERVAL", "label": "Metrics Scrape Interval", "default": "30s" },
+    { "name": "GRAFANA_ROOT_URL", "label": "Grafana Root URL (only when behind a reverse proxy)", "default": "" },
+    { "name": "GRAFANA_DB_TYPE", "label": "Grafana DB Type (sqlite3 or postgres)", "default": "sqlite3" },
+    { "name": "GRAFANA_DB_HOST", "label": "Grafana DB Host (host:port, postgres only)", "default": "" },
+    { "name": "GRAFANA_DB_NAME", "label": "Grafana DB Name (postgres only)", "default": "grafana" },
+    { "name": "GRAFANA_DB_USER", "label": "Grafana DB User (postgres only)", "default": "" },
+    { "name": "GRAFANA_DB_PASSWORD", "label": "Grafana DB Password (postgres only)", "default": "" },
+    { "name": "HOST_HOSTNAME", "label": "Host Label (host label on all metrics/logs)", "default": "homelab" },
+    { "name": "VM_BIND_IP", "label": "VictoriaMetrics Bind IP (WireGuard IP for remote agents)", "default": "127.0.0.1" },
+    { "name": "VLOGS_BIND_IP", "label": "VictoriaLogs Bind IP (WireGuard IP for remote agents)", "default": "127.0.0.1" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
+  ],
+  "note": "Deploys 4 containers: grafana, victoriametrics, victorialogs, alloy. Alloy mounts /var/log, /proc, /sys, / (read-only) and the docker socket to collect host metrics, docker logs, and system logs (auth, syslog, kernel). See stacks/observability/README.md for the full guide."
+}
