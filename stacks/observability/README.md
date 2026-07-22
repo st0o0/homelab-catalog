@@ -10,7 +10,7 @@ Grafana + VictoriaMetrics + VictoriaLogs + Grafana Alloy — low-footprint metri
                                    ▲             │
 ┌─────────┐   queries              │             │
 │ Grafana │───────────────────────►┤       ┌─────┴─────┐   /proc /sys /rootfs (host metrics)
-│ :3000   │───────────────────┐    │       │   Alloy   │◄── /var/log (fail2ban, auth, syslog)
+│ :3000   │───────────────────┐    │       │   Alloy   │◄── /var/log (auth, syslog, kernel)
 └─────────┘                   ▼    │       │  :12345   │◄── docker.sock (container logs)
                      ┌─────────────┴──┐    └─────┬─────┘
                      │ VictoriaLogs   │◄─────────┘
@@ -52,52 +52,28 @@ Only Grafana is published to the host. VictoriaMetrics and VictoriaLogs are boun
 
 Alloy's `prometheus.exporter.unix` emits the exact same `node_*` metrics as node-exporter, so Node Exporter Full works unmodified. For logs, VictoriaLogs also ships its own web UI at `http://127.0.0.1:9428/select/vmui/` on the host.
 
-## fail2ban & host log integration
+## Host log integration
 
 Alloy mounts the host's `/var/log` read-only and tails:
 
 | File | `job` field |
 |---|---|
-| `/var/log/fail2ban.log` | `fail2ban` |
 | `/var/log/auth.log` | `auth` |
 | `/var/log/syslog` | `syslog` |
 | `/var/log/kern.log` | `kernel` |
 
-### fail2ban prerequisites (on the host)
-
-fail2ban must log to a file (the default on most distros). Check `/etc/fail2ban/fail2ban.local`:
-
-```ini
-[Definition]
-logtarget = /var/log/fail2ban.log
-```
-
-Then `sudo systemctl restart fail2ban`. If your distro logs only to the systemd journal, either set `logtarget` as above (simplest) or add a `loki.source.journal` block to `alloy/config.alloy` and mount `/var/log/journal` + `/etc/machine-id`.
-
-Ban/Unban events are parsed and get `jail` and `action` stream fields (the IP deliberately stays in the log line).
-
 ### Useful LogsQL queries
 
 ```logsql
-# All ban events
-{job="fail2ban", action="Ban"}
-
-# Bans per jail over the last 24h (great as a bar chart)
-_time:24h {job="fail2ban", action="Ban"} | stats by (jail) count()
-
 # Failed SSH logins from auth.log
 {job="auth"} "Failed password"
 
-# Bans per 5m as a timeseries panel
-{job="fail2ban", action="Ban"} | stats by (_time:5m) count()
+# Kernel messages
+{job="kernel"}
+
+# All logs from this host
+{host="homelab"}
 ```
-
-Build a small "Security" dashboard from these — a stat panel with total bans (24h), a bar chart per jail, and a logs panel with `{job="fail2ban"}`.
-
-### Alerting on bans
-
-Grafana → Alerting → New alert rule, query the VictoriaLogs datasource with e.g.
-`_time:10m {job="fail2ban", action="Ban"} | stats count()` and alert on `> 5` to get notified about ban storms.
 
 ## Configuration & tuning
 

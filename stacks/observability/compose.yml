@@ -110,7 +110,7 @@ services:
     volumes:
       - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
       - alloy-data:/var/lib/alloy/data
-      # Host log files (fail2ban, auth, syslog, ...)
+      # Host log files (auth, syslog, kernel)
       - /var/log:/var/log/host:ro
       # Host metrics (node-exporter equivalent built into Alloy)
       - /proc:/host/proc:ro

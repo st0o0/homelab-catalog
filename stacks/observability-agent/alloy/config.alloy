@@ -88,36 +88,3 @@ loki.source.file "system" {
   targets    = local.file_match.system.targets
   forward_to = [loki.write.central.receiver]
 }
-
-// ---------- fail2ban ----------
-// Requires fail2ban on the host logging to /var/log/fail2ban.log
-// (the default logtarget on most distros).
-
-local.file_match "fail2ban" {
-  path_targets = [
-    {__path__ = "/var/log/host/fail2ban.log", job = "fail2ban"},
-  ]
-}
-
-loki.source.file "fail2ban" {
-  targets    = local.file_match.fail2ban.targets
-  forward_to = [loki.process.fail2ban.receiver]
-}
-
-loki.process "fail2ban" {
-  // Example line:
-  // 2026-07-18 10:00:00,123 fail2ban.actions [123]: NOTICE [sshd] Ban 1.2.3.4
-  stage.regex {
-    expression = "\\[(?P<jail>[^\\]]+)\\]\\s+(?P<action>Ban|Unban|Found|Restore Ban)\\s+(?P<ip>\\S+)"
-  }
-
-  // jail/action are low-cardinality -> safe as labels.
-  stage.labels {
-    values = {
-      jail   = "",
-      action = "",
-    }
-  }
-
-  forward_to = [loki.write.central.receiver]
-}

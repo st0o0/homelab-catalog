@@ -1,7 +1,7 @@
 {
   "type": 3,
   "title": "Observability",
-  "description": "Grafana, VictoriaMetrics, VictoriaLogs, and Alloy for metrics, logs, and fail2ban/system log ingestion",
+  "description": "Grafana, VictoriaMetrics, VictoriaLogs, and Alloy for metrics and system log ingestion",
   "logo": "https://raw.githubusercontent.com/grafana/grafana/main/public/img/fav32.png",
   "categories": ["Observability", "Monitoring"],
   "repository": {
@@ -27,5 +27,5 @@
     { "name": "VLOGS_BIND_IP", "label": "VictoriaLogs Bind IP (WireGuard IP for remote agents)", "default": "127.0.0.1" },
     { "name": "TZ", "label": "Timezone", "default": "Europe/Vienna" }
   ],
-  "note": "Deploys 4 containers: grafana, victoriametrics, victorialogs, alloy. Alloy mounts /var/log, /proc, /sys, / (read-only) and the docker socket to collect host metrics, docker logs, and fail2ban/auth/syslog. See stacks/observability/README.md for the full guide."
+  "note": "Deploys 4 containers: grafana, victoriametrics, victorialogs, alloy. Alloy mounts /var/log, /proc, /sys, / (read-only) and the docker socket to collect host metrics, docker logs, and system logs (auth, syslog, kernel). See stacks/observability/README.md for the full guide."
 }

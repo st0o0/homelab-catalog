@@ -1,6 +1,6 @@
 # Observability Agent
 
-Collector stack for **remote servers**: Grafana Alloy gathers host metrics, docker logs, and system/fail2ban logs — exactly like the central [observability stack](../observability/README.md) — and ships everything to the central VictoriaMetrics/VictoriaLogs through a **Bifrost WireGuard tunnel**.
+Collector stack for **remote servers**: Grafana Alloy gathers host metrics, docker logs, and system logs — exactly like the central [observability stack](../observability/README.md) — and ships everything to the central VictoriaMetrics/VictoriaLogs through a **Bifrost WireGuard tunnel**.
 
 ```
  remote server                                      central server
@@ -65,14 +65,6 @@ In Grafana on the central server:
 - **Explore → VictoriaLogs**: `{host="nas-01"}`
 
 Since every series carries the `host` label, the imported dashboards (e.g. Node Exporter Full) let you switch between servers with the instance/host variable.
-
-## fail2ban on remote hosts
-
-Identical to the central stack: fail2ban must log to `/var/log/fail2ban.log` (default on most distros — see the [central README](../observability/README.md#fail2ban--host-log-integration)). Ban events arrive with `job="fail2ban"`, `jail`, `action`, and the agent's `host` field, so one Security dashboard covers the whole fleet:
-
-```logsql
-_time:24h {job="fail2ban", action="Ban"} | stats by (host, jail) count()
-```
 
 ## Notes
 
