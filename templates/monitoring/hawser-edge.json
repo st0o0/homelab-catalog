@@ -1,0 +1,20 @@
+{
+  "type": 1,
+  "title": "Hawser (Edge)",
+  "description": "Dockhand Edge agent — outbound WebSocket, no inbound ports needed",
+  "image": "ghcr.io/finsys/hawser:0.2.46",
+  "categories": ["Monitoring"],
+  "volumes": [
+    { "bind": "/var/run/docker.sock", "container": "/var/run/docker.sock" },
+    { "bind": "/opt/hawser-stacks", "container": "/data/stacks" }
+  ],
+  "env": [
+    { "name": "DOCKHAND_SERVER_URL", "label": "Dockhand Server URL (e.g. https://dockhand.example.com)", "default": "" },
+    { "name": "TOKEN", "label": "Edge Token", "default": "" },
+    { "name": "AGENT_NAME", "label": "Agent Name", "default": "" },
+    { "name": "HEARTBEAT_INTERVAL", "label": "Heartbeat Interval (seconds)", "default": "30" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Vienna" }
+  ],
+  "restart_policy": "unless-stopped",
+  "note": "Deploys Hawser in Edge mode: initiates an outbound WebSocket connection to the central Dockhand server. No inbound ports required — works behind NAT and firewalls. Set DOCKHAND_SERVER_URL and TOKEN from the Dockhand UI when adding a new Edge environment."
+}

@@ -1,0 +1,19 @@
+{
+  "type": 1,
+  "title": "Hawser",
+  "description": "Dockhand agent for managing remote Docker environments",
+  "image": "ghcr.io/finsys/hawser:0.2.46",
+  "categories": ["Monitoring"],
+  "ports": ["2376:2376/tcp"],
+  "volumes": [
+    { "bind": "/var/run/docker.sock", "container": "/var/run/docker.sock" },
+    { "bind": "/opt/hawser-stacks", "container": "/data/stacks" }
+  ],
+  "env": [
+    { "name": "TOKEN", "label": "Agent Token (required when port is published)", "default": "" },
+    { "name": "AGENT_NAME", "label": "Agent Name", "default": "" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Vienna" }
+  ],
+  "restart_policy": "unless-stopped",
+  "note": "Deploys the Hawser agent (standard mode) so a central Dockhand instance can manage this Docker host remotely. Port 2376 must be reachable from the central server. A TOKEN is required when the port is exposed on a non-loopback address."
+}
