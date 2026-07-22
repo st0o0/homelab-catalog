@@ -1,0 +1,23 @@
+{
+  "type": 3,
+  "title": "UPS Monitor",
+  "description": "NUT exporter and Alloy for UPS monitoring with host metrics and logs, shipping to the central observability stack",
+  "logo": "https://raw.githubusercontent.com/grafana/alloy/main/docs/sources/assets/alloy_icon_orange.svg",
+  "categories": ["Observability", "Monitoring"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/ups-monitor/compose.yml"
+  },
+  "env": [
+    { "name": "HOST_HOSTNAME", "label": "Host Label (unique per server)", "default": "" },
+    { "name": "REMOTE_WRITE_URL", "label": "VictoriaMetrics Remote Write URL", "default": "" },
+    { "name": "LOGS_PUSH_URL", "label": "VictoriaLogs Push URL (Loki protocol)", "default": "" },
+    { "name": "NUT_SERVER", "label": "NUT Server Address (upsd)", "default": "host.docker.internal" },
+    { "name": "NUT_PORT", "label": "NUT Server Port", "default": "3493" },
+    { "name": "NUT_USER", "label": "NUT Username (optional)", "default": "" },
+    { "name": "NUT_PASSWORD", "label": "NUT Password (optional)", "default": "" },
+    { "name": "SCRAPE_INTERVAL", "label": "Metrics Scrape Interval", "default": "30s" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Vienna" }
+  ],
+  "note": "Deploys 2 containers: nut-exporter (scrapes upsd via NUT protocol) and ups-alloy (collects UPS + host metrics, docker logs, system logs). Requires NUT/peanut running on the host with upsd on port 3493. See stacks/ups-monitor/README.md."
+}
