@@ -1,19 +1,19 @@
 {
-  "type": 1,
+  "type": 3,
   "title": "Hawser",
   "description": "Dockhand agent for managing remote Docker environments",
-  "image": "ghcr.io/finsys/hawser:0.2.46",
   "categories": ["Monitoring"],
-  "ports": ["2376:2376/tcp"],
-  "volumes": [
-    { "bind": "/var/run/docker.sock", "container": "/var/run/docker.sock" },
-    { "bind": "/opt/hawser-stacks", "container": "/data/stacks" }
-  ],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/hawser/compose.yml"
+  },
   "env": [
-    { "name": "TOKEN", "label": "Agent Token (required when port is published)", "default": "" },
+    { "name": "TOKEN", "label": "Agent Token (required)", "default": "" },
     { "name": "AGENT_NAME", "label": "Agent Name", "default": "" },
-    { "name": "TZ", "label": "Timezone", "default": "Europe/Vienna" }
+    { "name": "HAWSER_PORT", "label": "Published Port", "default": "2376" },
+    { "name": "DOCKER_SOCKET", "label": "Docker Socket Path", "default": "/var/run/docker.sock" },
+    { "name": "STACKS_PATH", "label": "Stacks Storage Path (host path or named volume)", "default": "hawser-stacks" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
   ],
-  "restart_policy": "unless-stopped",
-  "note": "Deploys the Hawser agent (standard mode) so a central Dockhand instance can manage this Docker host remotely. Port 2376 must be reachable from the central server. A TOKEN is required when the port is exposed on a non-loopback address."
+  "note": "Deploys Hawser in standard mode. Port 2376 must be reachable from the central Dockhand server. A TOKEN is required when the port is exposed on a non-loopback address."
 }

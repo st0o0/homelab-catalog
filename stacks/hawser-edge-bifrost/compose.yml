@@ -47,10 +47,10 @@ services:
       - TOKEN=${TOKEN:?TOKEN is required}
       - AGENT_NAME=${AGENT_NAME:-}
       - HEARTBEAT_INTERVAL=${HEARTBEAT_INTERVAL:-30}
-      - TZ=${TZ:-Europe/Vienna}
+      - TZ=${TZ:-Europe/Berlin}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - hawser-stacks:/data/stacks
+      - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+      - ${STACKS_PATH:-hawser-stacks}:/data/stacks
     depends_on:
       bifrost:
         condition: service_started

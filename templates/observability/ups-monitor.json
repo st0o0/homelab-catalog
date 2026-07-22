@@ -18,7 +18,7 @@
     { "name": "NUT_USER", "label": "NUT Username (optional)", "default": "" },
     { "name": "NUT_PASSWORD", "label": "NUT Password (optional)", "default": "" },
     { "name": "SCRAPE_INTERVAL", "label": "Metrics Scrape Interval", "default": "30s" },
-    { "name": "TZ", "label": "Timezone", "default": "Europe/Vienna" }
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
   ],
   "note": "Deploys 2 containers: nut-exporter (scrapes upsd via NUT protocol) and ups-alloy (collects UPS + host metrics, docker logs, system logs). Requires NUT/peanut running on the host with upsd on port 3493. See stacks/ups-monitor/README.md."
 }

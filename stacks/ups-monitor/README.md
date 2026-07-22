@@ -122,7 +122,7 @@ Then `sudo systemctl enable --now nut-client`. When `upsd` on the Pi signals low
 | `NUT_USER` | — | NUT username (if `upsd` requires auth) |
 | `NUT_PASSWORD` | — | NUT password |
 | `SCRAPE_INTERVAL` | `30s` | Metrics scrape interval |
-| `TZ` | `Europe/Vienna` | Timezone |
+| `TZ` | `Europe/Berlin` | Timezone |
 
 ## Notes
 

@@ -94,7 +94,7 @@ Alloy mounts the host's `/var/log` read-only and tails:
 | `HOST_HOSTNAME` | `homelab` | `host` label on all metrics/logs |
 | `VM_BIND_IP` | `127.0.0.1` | Bind IP for VictoriaMetrics `:8428` (set to WireGuard IP for agents) |
 | `VLOGS_BIND_IP` | `127.0.0.1` | Bind IP for VictoriaLogs `:9428` (set to WireGuard IP for agents) |
-| `TZ` | `Europe/Vienna` | Grafana timezone |
+| `TZ` | `Europe/Berlin` | Grafana timezone |
 
 - **Low-power tuning**: the scrape interval defaults to `30s` — set `SCRAPE_INTERVAL=60s` to halve write load again, or `15s` for finer resolution.
 - **Defaults already applied**: Grafana runs without analytics/phone-home/news feed and with SQLite WAL mode; all containers use log rotation (10 MB × 3 files); VictoriaMetrics self-monitors (`vm_*` metrics) and deduplicates at the scrape interval.

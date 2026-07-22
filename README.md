@@ -43,7 +43,7 @@ Minimal template for a single container:
     { "bind": "/data/my-service", "container": "/config" }
   ],
   "env": [
-    { "name": "TZ", "label": "Timezone", "default": "Europe/Vienna" }
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
   ],
   "restart_policy": "unless-stopped"
 }

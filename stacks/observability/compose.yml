@@ -36,7 +36,7 @@ services:
       - GF_DATABASE_USER=${GRAFANA_DB_USER:-}
       - GF_DATABASE_PASSWORD=${GRAFANA_DB_PASSWORD:-}
       - GF_DATABASE_SSL_MODE=${GRAFANA_DB_SSL_MODE:-disable}
-      - TZ=${TZ:-Europe/Vienna}
+      - TZ=${TZ:-Europe/Berlin}
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro

@@ -50,7 +50,7 @@ File name should be lowercase kebab-case matching the service name (e.g. `uptime
     { "bind": "/data/my-service/data", "container": "/data" }
   ],
   "env": [
-    { "name": "TZ", "label": "Timezone", "default": "Europe/Vienna" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" },
     { "name": "PUID", "label": "User ID", "default": "1000" },
     { "name": "PGID", "label": "Group ID", "default": "1000" }
   ],

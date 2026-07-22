@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     logging: *default-logging
     environment:
-      - TZ=${TZ:-Europe/Vienna}
+      - TZ=${TZ:-Europe/Berlin}
       - HTTP_PORT=9199
       # NUT server (upsd) running on the host
       - NUT_EXPORTER_SERVER=${NUT_SERVER:-host.docker.internal}
