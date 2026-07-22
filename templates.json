@@ -3,6 +3,183 @@
   "templates": [
     {
       "type": 3,
+      "title": "Hawser Edge + Bifrost",
+      "description": "Dockhand Edge agent tunnelled through a Bifrost WireGuard connection",
+      "logo": "https://raw.githubusercontent.com/st0o0/bifrost/main/docs/static/img/favicon.png",
+      "categories": [
+        "Monitoring",
+        "Networking"
+      ],
+      "repository": {
+        "url": "https://github.com/st0o0/homelab-catalog",
+        "stackfile": "stacks/hawser-edge-bifrost/compose.yml"
+      },
+      "env": [
+        {
+          "name": "DOCKHAND_SERVER_URL",
+          "label": "Dockhand Server URL (via tunnel, e.g. http://10.13.13.1:9000)",
+          "default": ""
+        },
+        {
+          "name": "TOKEN",
+          "label": "Edge Token",
+          "default": ""
+        },
+        {
+          "name": "AGENT_NAME",
+          "label": "Agent Name",
+          "default": ""
+        },
+        {
+          "name": "HEARTBEAT_INTERVAL",
+          "label": "Heartbeat Interval (seconds)",
+          "default": "30"
+        },
+        {
+          "name": "DOCKER_SOCKET",
+          "label": "Docker Socket Path",
+          "default": "/var/run/docker.sock"
+        },
+        {
+          "name": "STACKS_PATH",
+          "label": "Stacks Storage Path (host path or named volume)",
+          "default": "hawser-stacks"
+        },
+        {
+          "name": "BIFROST_PRIVATE_KEY",
+          "label": "WireGuard Private Key",
+          "default": ""
+        },
+        {
+          "name": "BIFROST_ADDRESS",
+          "label": "Tunnel Address (CIDR)",
+          "default": "10.13.13.2/32"
+        },
+        {
+          "name": "BIFROST_PEER_PUBLIC_KEY",
+          "label": "Peer Public Key (central server)",
+          "default": ""
+        },
+        {
+          "name": "BIFROST_PEER_ENDPOINT",
+          "label": "Peer Endpoint (host:port)",
+          "default": ""
+        },
+        {
+          "name": "BIFROST_PEER_ALLOWED_IPS",
+          "label": "Peer Allowed IPs",
+          "default": "10.13.13.0/24"
+        },
+        {
+          "name": "BIFROST_PEER_PRESHARED_KEY",
+          "label": "Peer Preshared Key (optional)",
+          "default": ""
+        },
+        {
+          "name": "TZ",
+          "label": "Timezone",
+          "default": "Europe/Berlin"
+        }
+      ],
+      "note": "Deploys 2 containers: hawser-bifrost (WireGuard, NET_ADMIN) and hawser-edge (network_mode: service:bifrost). All Dockhand traffic flows through the WireGuard tunnel — nothing exposed on the public network. Set DOCKHAND_SERVER_URL to the Dockhand instance's tunnel IP (e.g. http://10.13.13.1:9000)."
+    },
+    {
+      "type": 3,
+      "title": "Hawser (Edge)",
+      "description": "Dockhand Edge agent — outbound WebSocket, no inbound ports needed",
+      "categories": [
+        "Monitoring"
+      ],
+      "repository": {
+        "url": "https://github.com/st0o0/homelab-catalog",
+        "stackfile": "stacks/hawser-edge/compose.yml"
+      },
+      "env": [
+        {
+          "name": "DOCKHAND_SERVER_URL",
+          "label": "Dockhand Server URL (e.g. https://dockhand.example.com)",
+          "default": ""
+        },
+        {
+          "name": "TOKEN",
+          "label": "Edge Token",
+          "default": ""
+        },
+        {
+          "name": "AGENT_NAME",
+          "label": "Agent Name",
+          "default": ""
+        },
+        {
+          "name": "HEARTBEAT_INTERVAL",
+          "label": "Heartbeat Interval (seconds)",
+          "default": "30"
+        },
+        {
+          "name": "DOCKER_SOCKET",
+          "label": "Docker Socket Path",
+          "default": "/var/run/docker.sock"
+        },
+        {
+          "name": "STACKS_PATH",
+          "label": "Stacks Storage Path (host path or named volume)",
+          "default": "hawser-stacks"
+        },
+        {
+          "name": "TZ",
+          "label": "Timezone",
+          "default": "Europe/Berlin"
+        }
+      ],
+      "note": "Deploys Hawser in Edge mode: initiates an outbound WebSocket connection to the central Dockhand server. No inbound ports required — works behind NAT and firewalls."
+    },
+    {
+      "type": 3,
+      "title": "Hawser",
+      "description": "Dockhand agent for managing remote Docker environments",
+      "categories": [
+        "Monitoring"
+      ],
+      "repository": {
+        "url": "https://github.com/st0o0/homelab-catalog",
+        "stackfile": "stacks/hawser/compose.yml"
+      },
+      "env": [
+        {
+          "name": "TOKEN",
+          "label": "Agent Token (required)",
+          "default": ""
+        },
+        {
+          "name": "AGENT_NAME",
+          "label": "Agent Name",
+          "default": ""
+        },
+        {
+          "name": "HAWSER_PORT",
+          "label": "Published Port",
+          "default": "2376"
+        },
+        {
+          "name": "DOCKER_SOCKET",
+          "label": "Docker Socket Path",
+          "default": "/var/run/docker.sock"
+        },
+        {
+          "name": "STACKS_PATH",
+          "label": "Stacks Storage Path (host path or named volume)",
+          "default": "hawser-stacks"
+        },
+        {
+          "name": "TZ",
+          "label": "Timezone",
+          "default": "Europe/Berlin"
+        }
+      ],
+      "note": "Deploys Hawser in standard mode. Port 2376 must be reachable from the central Dockhand server. A TOKEN is required when the port is exposed on a non-loopback address."
+    },
+    {
+      "type": 3,
       "title": "Bifrost",
       "description": "WireGuard tunnel sidecar with automatic DDNS re-resolution, reconnect, and liveness probes",
       "logo": "https://raw.githubusercontent.com/st0o0/bifrost/main/docs/static/img/favicon.png",
@@ -94,6 +271,242 @@
     },
     {
       "type": 3,
+      "title": "Observability Agent",
+      "description": "Alloy collector for remote servers shipping metrics and logs to the central stack through a Bifrost WireGuard tunnel",
+      "logo": "https://raw.githubusercontent.com/st0o0/bifrost/main/docs/static/img/favicon.png",
+      "categories": [
+        "Observability",
+        "Monitoring"
+      ],
+      "repository": {
+        "url": "https://github.com/st0o0/homelab-catalog",
+        "stackfile": "stacks/observability-agent/compose.yml"
+      },
+      "env": [
+        {
+          "name": "HOST_HOSTNAME",
+          "label": "Host Label (unique per server)",
+          "default": ""
+        },
+        {
+          "name": "SCRAPE_INTERVAL",
+          "label": "Metrics Scrape Interval",
+          "default": "30s"
+        },
+        {
+          "name": "BIFROST_PRIVATE_KEY",
+          "label": "WireGuard Private Key",
+          "default": ""
+        },
+        {
+          "name": "BIFROST_ADDRESS",
+          "label": "Tunnel Address (CIDR)",
+          "default": "10.13.13.2/32"
+        },
+        {
+          "name": "BIFROST_PEER_PUBLIC_KEY",
+          "label": "Peer Public Key (central server)",
+          "default": ""
+        },
+        {
+          "name": "BIFROST_PEER_ENDPOINT",
+          "label": "Peer Endpoint (host:port)",
+          "default": ""
+        },
+        {
+          "name": "BIFROST_PEER_ALLOWED_IPS",
+          "label": "Peer Allowed IPs",
+          "default": "10.13.13.0/24"
+        },
+        {
+          "name": "BIFROST_PEER_PRESHARED_KEY",
+          "label": "Peer Preshared Key (optional)",
+          "default": ""
+        },
+        {
+          "name": "REMOTE_WRITE_URL",
+          "label": "VictoriaMetrics Remote Write URL",
+          "default": "http://10.13.13.1:8428/api/v1/write"
+        },
+        {
+          "name": "LOGS_PUSH_URL",
+          "label": "VictoriaLogs Push URL",
+          "default": "http://10.13.13.1:9428/insert/loki/api/v1/push"
+        }
+      ],
+      "note": "Deploys 2 containers: obs-agent-bifrost (WireGuard, NET_ADMIN) and obs-agent-alloy (network_mode: service:bifrost). Alloy mounts /var/log, /proc, /sys, / (read-only) and the docker socket. Set VM_BIND_IP/VLOGS_BIND_IP on the central Observability stack to its WireGuard IP. See stacks/observability-agent/README.md."
+    },
+    {
+      "type": 3,
+      "title": "Observability",
+      "description": "Grafana, VictoriaMetrics, VictoriaLogs, and Alloy for metrics and system log ingestion",
+      "logo": "https://raw.githubusercontent.com/grafana/grafana/main/public/img/fav32.png",
+      "categories": [
+        "Observability",
+        "Monitoring"
+      ],
+      "repository": {
+        "url": "https://github.com/st0o0/homelab-catalog",
+        "stackfile": "stacks/observability/compose.yml"
+      },
+      "env": [
+        {
+          "name": "GRAFANA_ADMIN_PASSWORD",
+          "label": "Grafana Admin Password",
+          "default": ""
+        },
+        {
+          "name": "GRAFANA_ADMIN_USER",
+          "label": "Grafana Admin User",
+          "default": "admin"
+        },
+        {
+          "name": "GRAFANA_PORT",
+          "label": "Grafana Port",
+          "default": "3000"
+        },
+        {
+          "name": "VM_RETENTION",
+          "label": "Metrics Retention",
+          "default": "90d"
+        },
+        {
+          "name": "VL_RETENTION",
+          "label": "Logs Retention",
+          "default": "31d"
+        },
+        {
+          "name": "VL_MAX_DISK_GB",
+          "label": "Logs Max Disk Usage GB (0 = unlimited)",
+          "default": "0"
+        },
+        {
+          "name": "SCRAPE_INTERVAL",
+          "label": "Metrics Scrape Interval",
+          "default": "30s"
+        },
+        {
+          "name": "GRAFANA_ROOT_URL",
+          "label": "Grafana Root URL (only when behind a reverse proxy)",
+          "default": ""
+        },
+        {
+          "name": "GRAFANA_DB_TYPE",
+          "label": "Grafana DB Type (sqlite3 or postgres)",
+          "default": "sqlite3"
+        },
+        {
+          "name": "GRAFANA_DB_HOST",
+          "label": "Grafana DB Host (host:port, postgres only)",
+          "default": ""
+        },
+        {
+          "name": "GRAFANA_DB_NAME",
+          "label": "Grafana DB Name (postgres only)",
+          "default": "grafana"
+        },
+        {
+          "name": "GRAFANA_DB_USER",
+          "label": "Grafana DB User (postgres only)",
+          "default": ""
+        },
+        {
+          "name": "GRAFANA_DB_PASSWORD",
+          "label": "Grafana DB Password (postgres only)",
+          "default": ""
+        },
+        {
+          "name": "HOST_HOSTNAME",
+          "label": "Host Label (host label on all metrics/logs)",
+          "default": "homelab"
+        },
+        {
+          "name": "VM_BIND_IP",
+          "label": "VictoriaMetrics Bind IP (WireGuard IP for remote agents)",
+          "default": "127.0.0.1"
+        },
+        {
+          "name": "VLOGS_BIND_IP",
+          "label": "VictoriaLogs Bind IP (WireGuard IP for remote agents)",
+          "default": "127.0.0.1"
+        },
+        {
+          "name": "TZ",
+          "label": "Timezone",
+          "default": "Europe/Berlin"
+        }
+      ],
+      "note": "Deploys 4 containers: grafana, victoriametrics, victorialogs, alloy. Alloy mounts /var/log, /proc, /sys, / (read-only) and the docker socket to collect host metrics, docker logs, and system logs (auth, syslog, kernel). See stacks/observability/README.md for the full guide."
+    },
+    {
+      "type": 3,
+      "title": "UPS Monitor",
+      "description": "NUT exporter and Alloy for UPS monitoring with host metrics and logs, shipping to the central observability stack",
+      "logo": "https://raw.githubusercontent.com/grafana/alloy/main/docs/sources/assets/alloy_icon_orange.svg",
+      "categories": [
+        "Observability",
+        "Monitoring"
+      ],
+      "repository": {
+        "url": "https://github.com/st0o0/homelab-catalog",
+        "stackfile": "stacks/ups-monitor/compose.yml"
+      },
+      "env": [
+        {
+          "name": "HOST_HOSTNAME",
+          "label": "Host Label (unique per server)",
+          "default": ""
+        },
+        {
+          "name": "REMOTE_WRITE_URL",
+          "label": "VictoriaMetrics Remote Write URL",
+          "default": ""
+        },
+        {
+          "name": "LOGS_PUSH_URL",
+          "label": "VictoriaLogs Push URL (Loki protocol)",
+          "default": ""
+        },
+        {
+          "name": "NUT_EXPORTER_TARGET",
+          "label": "NUT Exporter Scrape Target (host:port)",
+          "default": "nut-exporter:9199"
+        },
+        {
+          "name": "NUT_SERVER",
+          "label": "NUT Server Address (upsd)",
+          "default": "host.docker.internal"
+        },
+        {
+          "name": "NUT_PORT",
+          "label": "NUT Server Port",
+          "default": "3493"
+        },
+        {
+          "name": "NUT_USER",
+          "label": "NUT Username (optional)",
+          "default": ""
+        },
+        {
+          "name": "NUT_PASSWORD",
+          "label": "NUT Password (optional)",
+          "default": ""
+        },
+        {
+          "name": "SCRAPE_INTERVAL",
+          "label": "Metrics Scrape Interval",
+          "default": "30s"
+        },
+        {
+          "name": "TZ",
+          "label": "Timezone",
+          "default": "Europe/Berlin"
+        }
+      ],
+      "note": "Deploys 2 containers: nut-exporter (scrapes upsd via NUT protocol) and ups-alloy (collects UPS + host metrics, docker logs, system logs). Requires NUT/peanut running on the host with upsd on port 3493. See stacks/ups-monitor/README.md."
+    },
+    {
+      "type": 3,
       "title": "Immich",
       "description": "Self-hosted photo management with server, ML, database, and cache",
       "logo": "https://raw.githubusercontent.com/immich-app/immich/main/docs/static/img/favicon.png",
@@ -133,7 +546,7 @@
         {
           "name": "TZ",
           "label": "Timezone",
-          "default": "Europe/Vienna"
+          "default": "Europe/Berlin"
         }
       ],
       "note": "Deploys 4 containers: immich-server, immich-ml, postgres (pgvecto-rs), redis"
