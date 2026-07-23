@@ -1,5 +1,28 @@
 # Contributing
 
+## Commit convention
+
+This repo uses [release-please](https://github.com/googleapis/release-please)
+to generate CHANGELOGs and version tags for two independently-versioned
+components — `ansible` (everything under `ansible/`) and `catalog`
+(everything else, mainly `templates/` and `stacks/`). It parses commit
+messages on `main` by walking the git log, so with this repo's
+rebase/merge workflow **every individual commit** (not just a PR title)
+must follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+<type>(<optional scope>): <description>
+
+feat(ansible): add fail2ban role
+fix(catalog): correct jellyfin volume bind path
+docs: clarify template field reference
+```
+
+Common types: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `build`,
+`ci`, `chore`, `revert`. A CI check (`commitlint.yml`) lints every commit
+in a PR against this format and fails if any of them don't match — clean
+these up (`git rebase -i`) before merging.
+
 ## Project Structure
 
 ```
