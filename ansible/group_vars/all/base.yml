@@ -5,3 +5,5 @@ base_packages:
   - git
   - curl
   - ca-certificates
+  - gnupg
+  - figlet
