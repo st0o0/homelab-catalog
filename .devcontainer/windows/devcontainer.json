@@ -1,0 +1,45 @@
+{
+    "name": "Homelab Catalog — Windows",
+    "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "24"
+        }
+    },
+
+    "mounts": [
+        "source=homelab-catalog-ssh,target=/home/vscode/.ssh,type=volume",
+        "source=homelab-catalog-sops,target=/home/vscode/.config/sops,type=volume"
+    ],
+
+    "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.ssh /home/vscode/.config && sudo chmod +x scripts/install-dependencies.sh && bash scripts/install-dependencies.sh",
+
+    "remoteEnv": {
+        "BW_SERVER_URL": "${localEnv:BW_SERVER_URL}"
+    },
+
+    "containerEnv": {
+        "ANSIBLE_CONFIG": "${containerWorkspaceFolder}/ansible/ansible.cfg",
+        "SOPS_AGE_KEY_FILE": "/home/vscode/.config/sops/age/keys.txt"
+    },
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "redhat.ansible",
+                "ms-azuretools.vscode-docker"
+            ],
+            "settings": {
+                "ansible.python.interpreterPath": "/usr/bin/python3",
+                "ansible.ansible.path": "/usr/bin/ansible",
+                "ansible.ansibleLint.path": "/usr/bin/ansible-lint",
+                "ansible.ansibleLint.enabled": true,
+                "files.associations": {
+                    "ansible/**/*.yml": "ansible",
+                    "ansible/**/*.yaml": "ansible"
+                }
+            }
+        }
+    }
+}
