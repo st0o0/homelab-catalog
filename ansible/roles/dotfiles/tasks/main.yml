@@ -16,6 +16,18 @@
       /home/{{ ssh_user }} doesn't exist. Run bootstrap.yml (the ssh role)
       on this host first.
 
+- name: Install zsh
+  ansible.builtin.apt:
+    name: zsh
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Set zsh as deploy user's login shell
+  ansible.builtin.user:
+    name: "{{ ssh_user }}"
+    shell: /usr/bin/zsh
+
 - name: Check if chezmoi is installed
   ansible.builtin.stat:
     path: /usr/local/bin/chezmoi

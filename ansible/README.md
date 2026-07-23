@@ -290,6 +290,14 @@ Colored login banner showing hostname (as ASCII art via figlet), OS, kernel, IPs
 **Variables** (`host_vars/<hostname>/vars.yml`):
 - `motd_enabled` — default: `true`
 
+### dotfiles
+
+Installs zsh, sets it as the deploy user's login shell, then installs [chezmoi](https://www.chezmoi.io) and applies the `server` profile from the [dotfiles repo](https://github.com/st0o0/dotfiles) (`.zshrc`, `.tmux.conf`, aliases). Runs on every converge (`chezmoi update --force`), so dotfile changes propagate on the next `just deploy`/`just update`.
+
+**Variables** (`roles/dotfiles/defaults/main.yml`):
+- `dotfiles_enabled` — default: `true`
+- `dotfiles_github_user` — default: `st0o0`
+
 ### node_agent
 
 Deploys monitoring and management agents as Docker containers. Each component is independently toggleable:
