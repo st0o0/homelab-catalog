@@ -9,6 +9,7 @@ sudo apt-get install -y -qq --no-install-recommends \
     python3-venv \
     jq \
     tmux \
+    zsh \
     > /dev/null
 
 echo "==> Installing Ansible via pip..."
@@ -92,6 +93,42 @@ else
     echo "    age-keygen -o $AGE_KEY_FILE"
 fi
 
+echo "==> Installing starship..."
+if [ ! -x "$HOME/.local/bin/starship" ]; then
+    curl -fsSL https://starship.rs/install.sh | sh -s -- -b "$HOME/.local/bin" -y > /dev/null
+else
+    echo "    Already installed"
+fi
+
+echo "==> Setting zsh as default shell..."
+if [ "${SHELL:-}" != "$(command -v zsh)" ]; then
+    sudo chsh -s "$(command -v zsh)" "${USER:-vscode}"
+fi
+
+echo "==> Configuring system-wide tmux autostart..."
+# VS Code's default terminal profile can't be set from devcontainer.json
+# (terminal.integrated.defaultProfile.* is application-scoped, not
+# workspace/remote-scoped). Hooking /etc/bash.bashrc and /etc/zsh/zshrc
+# instead works regardless of which shell VS Code launches, and survives
+# `chezmoi update` since it only manages files under $HOME.
+TMUX_AUTOSTART_MARKER="# homelab-catalog: tmux autostart"
+TMUX_AUTOSTART_SNIPPET="
+${TMUX_AUTOSTART_MARKER}
+if [ -z \"\${TMUX:-}\" ] && [ -n \"\${PS1:-}\" ] && command -v tmux >/dev/null 2>&1; then
+    exec tmux new-session -A -s main
+fi
+"
+for rc in /etc/bash.bashrc /etc/zsh/zshrc /etc/profile /etc/zsh/zprofile; do
+    sudo mkdir -p "$(dirname "$rc")"
+    sudo touch "$rc"
+    if ! sudo grep -q "$TMUX_AUTOSTART_MARKER" "$rc"; then
+        printf '%s\n' "$TMUX_AUTOSTART_SNIPPET" | sudo tee -a "$rc" > /dev/null
+        echo "    Added to $rc"
+    else
+        echo "    Already present in $rc"
+    fi
+done
+
 echo "==> Installing chezmoi..."
 if [ ! -x "$HOME/.local/bin/chezmoi" ]; then
     sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
@@ -100,7 +137,12 @@ else
 fi
 
 echo "==> Applying dotfiles (workstation profile: tmux, kitty n/a, aliases)..."
-"$HOME/.local/bin/chezmoi" init --apply --data '{"profile":"workstation"}' st0o0
+mkdir -p "$HOME/.config/chezmoi"
+cat > "$HOME/.config/chezmoi/chezmoi.toml" <<'CHEZMOI_TOML'
+[data]
+    profile = "workstation"
+CHEZMOI_TOML
+"$HOME/.local/bin/chezmoi" init --apply st0o0
 
 echo "==> Setting up devcontainer-specific shell aliases..."
 ALIAS_DIR="$HOME/.bash_aliases.d"
@@ -126,6 +168,8 @@ age --version
 sops --version
 just --version
 tmux -V
+zsh --version
+"$HOME/.local/bin/starship" --version | head -1
 "$HOME/.local/bin/chezmoi" --version | head -1
 echo "    SSH key:  $([ -f "$HOME/.ssh/id_ansible" ] && echo 'present' || echo 'missing')"
 echo "    Age key:  $([ -f "$AGE_KEY_FILE" ] && echo 'present' || echo 'missing')"

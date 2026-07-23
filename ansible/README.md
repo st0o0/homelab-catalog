@@ -394,7 +394,17 @@ Two platform-specific configurations under `.devcontainer/`:
 
 ### Installed tools
 
-Ansible (via pip), ansible-lint, SOPS, age, just, jq, Bitwarden CLI, sshpass
+Ansible (via pip), ansible-lint, SOPS, age, just, jq, Bitwarden CLI, sshpass, zsh, tmux, starship, chezmoi
+
+### Shell prompt icons look broken / boxes instead of icons (Windows)
+
+`terminal.integrated.fontFamily` in `.devcontainer/*/devcontainer.json` only tells VS Code *which* font to request — VS Code's integrated terminal is rendered by the Electron UI process on your **host** machine, not inside the container, so the Nerd Font glyphs Starship uses (segment icons, git branch symbol, etc.) only render if that font is actually installed on the host OS. This is why the Linux devcontainer can look right while Windows doesn't: the font has to be installed once per host, separately from anything the container/postCreateCommand can do.
+
+Install it once on the Windows host, then fully restart VS Code (reload window is not enough — the font list is cached at process start):
+
+```powershell
+winget install -e --id DEVCOM.JetBrainsMonoNerdFont
+```
 
 ### Persistent storage
 

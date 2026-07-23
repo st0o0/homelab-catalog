@@ -15,13 +15,17 @@
 
     "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.ssh /home/vscode/.config && sudo chmod +x scripts/install-dependencies.sh && bash scripts/install-dependencies.sh",
 
+    "postStartCommand": "bash scripts/update-dotfiles.sh",
+
     "remoteEnv": {
         "BW_SERVER_URL": "${localEnv:BW_SERVER_URL}"
     },
 
     "containerEnv": {
         "ANSIBLE_CONFIG": "${containerWorkspaceFolder}/ansible/ansible.cfg",
-        "SOPS_AGE_KEY_FILE": "/home/vscode/.config/sops/age/keys.txt"
+        "SOPS_AGE_KEY_FILE": "/home/vscode/.config/sops/age/keys.txt",
+        "LANG": "C.UTF-8",
+        "LC_ALL": "C.UTF-8"
     },
 
     "customizations": {
@@ -38,7 +42,8 @@
                 "files.associations": {
                     "ansible/**/*.yml": "ansible",
                     "ansible/**/*.yaml": "ansible"
-                }
+                },
+                "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font Mono', monospace"
             }
         }
     }
