@@ -1,3 +1,4 @@
+docker_enabled: true
 docker_user: "{{ ansible_user }}"
 docker_packages:
   - docker-ce
