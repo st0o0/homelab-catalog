@@ -1,0 +1,105 @@
+set dotenv-load
+
+# Bootstrap a new host (first run, as root with password)
+bootstrap HOST USER="root":
+    ansible-playbook bootstrap.yml --limit {{HOST}} -e ansible_user={{USER}} --ask-pass
+
+# Converge all hosts
+run *ARGS:
+    ansible-playbook run.yml {{ARGS}}
+
+# Converge a single host
+deploy HOST *ARGS:
+    ansible-playbook run.yml --limit {{HOST}} {{ARGS}}
+
+# Run system updates on all hosts
+update:
+    ansible-playbook run.yml --tags base -e base_upgrade=true
+
+# Connectivity check
+ping:
+    ansible -m ping all
+
+# Edit plaintext vars for a host
+vars HOST:
+    "${EDITOR:-nano}" host_vars/{{HOST}}/vars.yml
+
+# Edit encrypted secrets for a host (creates from template if new)
+secret HOST:
+    #!/usr/bin/env bash
+    SECRET="host_vars/{{HOST}}/secret.sops.yml"
+    TEMPLATE="host_vars/secret.sops.yml.tpl"
+    if [ ! -f "$SECRET" ]; then
+        mkdir -p "host_vars/{{HOST}}"
+        cp "$TEMPLATE" "/tmp/secret.sops.yml"
+        sops --config .sops.yaml --encrypt "/tmp/secret.sops.yml" > "$SECRET"
+        rm "/tmp/secret.sops.yml"
+    fi
+    sops "$SECRET" || true
+
+# Create a new host (scaffold host_vars + secrets)
+new-host HOST:
+    #!/usr/bin/env bash
+    mkdir -p "host_vars/{{HOST}}"
+    echo "# Feature toggles and non-sensitive config" > "host_vars/{{HOST}}/vars.yml"
+    SECRET="host_vars/{{HOST}}/secret.sops.yml"
+    TEMPLATE="host_vars/secret.sops.yml.tpl"
+    if [ ! -f "$SECRET" ]; then
+        cp "$TEMPLATE" "/tmp/secret.sops.yml"
+        sops --config .sops.yaml --encrypt "/tmp/secret.sops.yml" > "$SECRET"
+        rm "/tmp/secret.sops.yml"
+    fi
+    sops "$SECRET" || true
+    @echo ""
+    @echo "Add '    {{HOST}}:' under 'all: hosts:' in hosts.yml"
+
+# First-time setup (age key, Bitwarden backup, scaffold secrets)
+init:
+    bash ../scripts/init-secrets.sh
+
+# Show the container's SSH public key (copy this to your servers)
+show-key:
+    #!/usr/bin/env bash
+    KEY_FILE="$HOME/.ssh/id_ansible.pub"
+    if [ ! -f "$KEY_FILE" ]; then
+        echo "No SSH key found. Run the DevContainer setup first."
+        exit 1
+    fi
+    echo ""
+    echo "Copy this public key to your servers from a terminal where"
+    echo "your YubiKey works (e.g. Windows PowerShell):"
+    echo ""
+    echo "  ssh USER@HOST \"mkdir -p ~/.ssh && echo '$(cat "$KEY_FILE")' >> ~/.ssh/authorized_keys\""
+    echo ""
+    echo "Key:"
+    cat "$KEY_FILE"
+    echo ""
+
+# Check if Ansible can reach a host (tries backup key, then id_ansible)
+trust HOST:
+    #!/usr/bin/env bash
+    INV=$(ansible-inventory --host {{HOST}} 2>/dev/null) || { echo "Host '{{HOST}}' not found in inventory."; exit 1; }
+    HOST_IP=$(echo "$INV" | jq -r '.ansible_host // empty')
+    USER=$(echo "$INV" | jq -r '.ansible_user // empty')
+    USER="${USER:-$USER}"
+    BACKUP_KEY="$HOME/.ssh/id_backup_{{HOST}}"
+    ANSIBLE_KEY="$HOME/.ssh/id_ansible"
+    KEY=""
+    if [ -f "$BACKUP_KEY" ]; then KEY="$BACKUP_KEY";
+    elif [ -f "$ANSIBLE_KEY" ]; then KEY="$ANSIBLE_KEY"; fi
+    if [ -z "$KEY" ]; then echo "No SSH key found."; exit 1; fi
+    echo "Testing $USER@$HOST_IP with $(basename "$KEY")..."
+    if ssh -o BatchMode=yes -o ConnectTimeout=5 -i "$KEY" "$USER@$HOST_IP" "echo OK" 2>/dev/null; then
+        echo "✓ {{HOST}} reachable"
+    else
+        echo "✗ {{HOST}} NOT reachable"
+        echo ""
+        echo "If this is a new server, deploy the container key from Windows (YubiKey):"
+        echo "  ssh $USER@$HOST_IP \"mkdir -p ~/.ssh && echo '$(cat "$ANSIBLE_KEY.pub")' >> ~/.ssh/authorized_keys\""
+        echo ""
+        echo "Then run: just bootstrap {{HOST}} $USER"
+    fi
+
+# Lint
+lint:
+    ansible-lint

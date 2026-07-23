@@ -1,0 +1,9 @@
+- name: Bootstrap new host
+  hosts: all
+  become: true
+  gather_facts: false
+  pre_tasks:
+    - name: Gather facts
+      ansible.builtin.setup:
+  roles:
+    - role: ssh

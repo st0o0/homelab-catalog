@@ -1,0 +1,10 @@
+- name: Converge all hosts
+  hosts: all
+  become: true
+  roles:
+    - role: base
+      tags: [base]
+    - role: docker
+      tags: [docker]
+    - role: node_agent
+      tags: [node_agent]

@@ -3,3 +3,10 @@ templates.json
 
 .vscode/
 Thumbs.db
+
+# SOPS age key (never commit private keys)
+*.agekey
+.sops-age-key
+
+# Ansible vault password file (legacy, if present)
+ansible/.vault-password
