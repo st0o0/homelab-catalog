@@ -8,6 +8,7 @@ sudo apt-get install -y -qq --no-install-recommends \
     python3-pip \
     python3-venv \
     jq \
+    tmux \
     > /dev/null
 
 echo "==> Installing Ansible via pip..."
@@ -91,12 +92,22 @@ else
     echo "    age-keygen -o $AGE_KEY_FILE"
 fi
 
-echo "==> Setting up shell aliases..."
-ALIAS_FILE="$HOME/.bash_aliases"
-touch "$ALIAS_FILE"
-if ! grep -q 'unlock()' "$ALIAS_FILE"; then
-    cat >> "$ALIAS_FILE" <<'ALIASES'
+echo "==> Installing chezmoi..."
+if [ ! -x "$HOME/.local/bin/chezmoi" ]; then
+    sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+else
+    echo "    Already installed"
+fi
 
+echo "==> Applying dotfiles (workstation profile: tmux, kitty n/a, aliases)..."
+"$HOME/.local/bin/chezmoi" init --apply --data '{"profile":"workstation"}' st0o0
+
+echo "==> Setting up devcontainer-specific shell aliases..."
+ALIAS_DIR="$HOME/.bash_aliases.d"
+mkdir -p "$ALIAS_DIR"
+DEVCONTAINER_ALIASES="$ALIAS_DIR/00-devcontainer.sh"
+if ! grep -q 'unlock()' "$DEVCONTAINER_ALIASES" 2>/dev/null; then
+    cat > "$DEVCONTAINER_ALIASES" <<'ALIASES'
 # Bitwarden unlock — sets BW_SESSION for the current shell
 unlock() {
     export BW_SESSION=$(bw unlock --raw)
@@ -114,6 +125,8 @@ bw --version
 age --version
 sops --version
 just --version
+tmux -V
+"$HOME/.local/bin/chezmoi" --version | head -1
 echo "    SSH key:  $([ -f "$HOME/.ssh/id_ansible" ] && echo 'present' || echo 'missing')"
 echo "    Age key:  $([ -f "$AGE_KEY_FILE" ] && echo 'present' || echo 'missing')"
 
