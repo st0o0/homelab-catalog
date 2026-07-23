@@ -2,6 +2,8 @@
   hosts: all
   become: true
   roles:
+    - role: hostname
+      tags: [hostname]
     - role: base
       tags: [base]
     - role: docker
