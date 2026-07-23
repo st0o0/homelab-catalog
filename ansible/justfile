@@ -48,6 +48,12 @@ deploy HOST *ARGS:
 update *ARGS:
     ansible-playbook run.yml --tags base -e base_upgrade=true {{ARGS}}
 
+# Sync dotfiles on all hosts — enables chezmoi where missing, pulls +
+# applies the latest dotfiles repo state everywhere else (idempotent,
+# safe to re-run any time you push changes to the dotfiles repo)
+sync-dotfiles *ARGS:
+    ansible-playbook run.yml --tags dotfiles {{ARGS}}
+
 # Connectivity check
 ping:
     ansible -m ping all

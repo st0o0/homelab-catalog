@@ -126,6 +126,7 @@ just bootstrap myserver st0o0           # connects as st0o0 instead of root
 | `just deploy HOST` | Converge a single host |
 | `just deploy HOST --tags docker` | Run only specific roles on a host |
 | `just update` | apt dist-upgrade on all hosts |
+| `just sync-dotfiles` | Enable chezmoi where missing + pull/apply latest dotfiles everywhere |
 | `just bootstrap HOST [USER]` | First-time setup (default: root) |
 | `just setup` | New workstation — restore age key + SSH keys from Bitwarden |
 | `just secret HOST` | Edit encrypted secrets |
