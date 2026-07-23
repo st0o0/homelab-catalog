@@ -10,3 +10,7 @@ Thumbs.db
 
 # Ansible vault password file (legacy, if present)
 ansible/.vault-password
+
+test
+
+.devcontainer/linux/devcontainer-lock.json
