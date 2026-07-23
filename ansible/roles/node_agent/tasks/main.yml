@@ -2,6 +2,18 @@
   ansible.builtin.meta: end_role
   when: not node_agent_alloy_enabled and not node_agent_hawser_enabled
 
+- name: Check Docker is installed
+  ansible.builtin.stat:
+    path: /usr/bin/docker
+  register: _node_agent_docker_bin
+
+- name: Fail if Docker isn't installed
+  ansible.builtin.assert:
+    that: _node_agent_docker_bin.stat.exists
+    fail_msg: >-
+      node_agent requires Docker. Run the docker role first (e.g. plain
+      `just deploy <host>`, or `--tags docker,node_agent`).
+
 - name: Create stack directories
   ansible.builtin.file:
     path: "{{ node_agent_deploy_path }}/{{ item }}"
