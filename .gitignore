@@ -3,6 +3,7 @@ templates.json
 
 .vscode/
 Thumbs.db
+.claude/
 
 # SOPS age key (never commit private keys)
 *.agekey
