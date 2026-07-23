@@ -2,7 +2,39 @@ set dotenv-load
 
 # Bootstrap a new host (first run, as root with password)
 bootstrap HOST USER="root":
-    ansible-playbook bootstrap.yml --limit {{HOST}} -e ansible_user={{USER}} --ask-pass
+    ansible-playbook bootstrap.yml --limit {{HOST}} -e ansible_user={{USER}} -e ansible_ssh_private_key_file=~/.ssh/id_ansible --ask-pass
+
+# Set up a new workstation (restore age key + SSH backup keys from Bitwarden)
+setup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "${BW_SESSION:-}" ]; then
+        echo "BW_SESSION not set. Run 'unlock' first."
+        exit 1
+    fi
+    echo "=== Restoring age key ==="
+    bash ../scripts/init-secrets.sh
+    echo ""
+    echo "=== Restoring SSH backup keys ==="
+    HOSTS=$(ansible-inventory --list 2>/dev/null | jq -r '._meta.hostvars | keys[]')
+    for HOST in $HOSTS; do
+        KEY_FILE="$HOME/.ssh/id_backup_$HOST"
+        if [ -f "$KEY_FILE" ]; then
+            echo "  ✓ $HOST — already present"
+            continue
+        fi
+        BW_ITEM=$(bw get item "ssh-backup-$HOST" 2>/dev/null || true)
+        if [ -n "$BW_ITEM" ]; then
+            echo "$BW_ITEM" | python3 -c "import sys,json; print(json.load(sys.stdin)['sshKey']['privateKey'], end='')" > "$KEY_FILE"
+            chmod 600 "$KEY_FILE"
+            ssh-keygen -y -f "$KEY_FILE" > "$KEY_FILE.pub"
+            echo "  ✓ $HOST — restored from Bitwarden"
+        else
+            echo "  ✗ $HOST — not found in Bitwarden"
+        fi
+    done
+    echo ""
+    echo "Done. Run 'just ping' to verify connectivity."
 
 # Converge all hosts
 run *ARGS:
@@ -12,25 +44,35 @@ run *ARGS:
 deploy HOST *ARGS:
     ansible-playbook run.yml --limit {{HOST}} {{ARGS}}
 
-# Run system updates on all hosts
-update:
-    ansible-playbook run.yml --tags base -e base_upgrade=true
+# Run system updates (all hosts or single host)
+update *ARGS:
+    ansible-playbook run.yml --tags base -e base_upgrade=true {{ARGS}}
 
 # Connectivity check
 ping:
     ansible -m ping all
 
-# Edit plaintext vars for a host
+# Edit plaintext vars for a host (or 'all' for shared vars)
 vars HOST:
-    "${EDITOR:-nano}" host_vars/{{HOST}}/vars.yml
+    #!/usr/bin/env bash
+    if [ "{{HOST}}" = "all" ]; then
+        "${EDITOR:-nano}" group_vars/all/shared.yml
+    else
+        "${EDITOR:-nano}" host_vars/{{HOST}}/vars.yml
+    fi
 
-# Edit encrypted secrets for a host (creates from template if new)
+# Edit encrypted secrets (host or 'all' for shared secrets)
 secret HOST:
     #!/usr/bin/env bash
-    SECRET="host_vars/{{HOST}}/secret.sops.yml"
-    TEMPLATE="host_vars/secret.sops.yml.tpl"
+    if [ "{{HOST}}" = "all" ]; then
+        SECRET="group_vars/all/secret.sops.yml"
+        TEMPLATE="group_vars/all/secret.sops.yml.tpl"
+    else
+        SECRET="host_vars/{{HOST}}/secret.sops.yml"
+        TEMPLATE="host_vars/secret.sops.yml.tpl"
+    fi
     if [ ! -f "$SECRET" ]; then
-        mkdir -p "host_vars/{{HOST}}"
+        mkdir -p "$(dirname "$SECRET")"
         cp "$TEMPLATE" "/tmp/secret.sops.yml"
         sops --config .sops.yaml --encrypt "/tmp/secret.sops.yml" > "$SECRET"
         rm "/tmp/secret.sops.yml"
@@ -41,7 +83,12 @@ secret HOST:
 new-host HOST:
     #!/usr/bin/env bash
     mkdir -p "host_vars/{{HOST}}"
-    echo "# Feature toggles and non-sensitive config" > "host_vars/{{HOST}}/vars.yml"
+    VARS="host_vars/{{HOST}}/vars.yml"
+    VARS_TPL="host_vars/vars.yml.tpl"
+    if [ ! -f "$VARS" ]; then
+        cp "$VARS_TPL" "$VARS"
+        echo "  Created $VARS from template"
+    fi
     SECRET="host_vars/{{HOST}}/secret.sops.yml"
     TEMPLATE="host_vars/secret.sops.yml.tpl"
     if [ ! -f "$SECRET" ]; then
@@ -65,14 +112,16 @@ show-key:
         echo "No SSH key found. Run the DevContainer setup first."
         exit 1
     fi
+    PUB=$(cat "$KEY_FILE")
     echo ""
     echo "Copy this public key to your servers from a terminal where"
     echo "your YubiKey works (e.g. Windows PowerShell):"
     echo ""
-    echo "  ssh USER@HOST \"mkdir -p ~/.ssh && echo '$(cat "$KEY_FILE")' >> ~/.ssh/authorized_keys\""
+    echo "  ssh USER@HOST \"mkdir -p ~/.ssh && echo '$PUB' >> ~/.ssh/authorized_keys\""
     echo ""
-    echo "Key:"
-    cat "$KEY_FILE"
+    echo "Or just echo to copy-paste:"
+    echo ""
+    echo "  echo '$PUB' >> ~/.ssh/authorized_keys"
     echo ""
 
 # Check if Ansible can reach a host (tries backup key, then id_ansible)
@@ -99,6 +148,24 @@ trust HOST:
         echo ""
         echo "Then run: just bootstrap {{HOST}} $USER"
     fi
+
+# Show bootstrap status of all hosts
+check:
+    #!/usr/bin/env bash
+    HOSTS=$(ansible-inventory --list 2>/dev/null | jq -r '._meta.hostvars | keys[]')
+    for HOST in $HOSTS; do
+        INV=$(ansible-inventory --host "$HOST" 2>/dev/null)
+        IP=$(echo "$INV" | jq -r '.ansible_host // "?"')
+        BACKUP_KEY="$HOME/.ssh/id_backup_$HOST"
+        if [ -f "$BACKUP_KEY" ]; then
+            STATUS="bootstrapped"
+            ICON="✓"
+        else
+            STATUS="no backup key"
+            ICON="✗"
+        fi
+        printf "  %s %-20s %-15s %s\n" "$ICON" "$HOST" "$IP" "$STATUS"
+    done
 
 # Rename a host (host_vars, hosts.yml, SSH keys, SSH config)
 rename OLD NEW:
