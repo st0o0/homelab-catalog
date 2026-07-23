@@ -6,7 +6,7 @@
     cache_valid_time: 3600
   when: ansible_user_id == 'root'
 
-- name: Create deploy user for VPS bootstrap
+- name: Create deploy user
   ansible.builtin.user:
     name: "{{ ssh_user }}"
     groups: sudo
