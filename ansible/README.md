@@ -121,11 +121,13 @@ just bootstrap myserver st0o0           # connects as st0o0 instead of root
 | Command | Description |
 |---|---|
 | `just ping` | Connectivity check — all hosts |
+| `just check` | Show bootstrap status of all hosts |
 | `just run` | Converge all hosts (all roles) |
 | `just deploy HOST` | Converge a single host |
 | `just deploy HOST --tags docker` | Run only specific roles on a host |
 | `just update` | apt dist-upgrade on all hosts |
 | `just bootstrap HOST [USER]` | First-time setup (default: root) |
+| `just setup` | New workstation — restore age key + SSH keys from Bitwarden |
 | `just secret HOST` | Edit encrypted secrets |
 | `just vars HOST` | Edit plaintext feature toggles |
 | `just new-host HOST` | Scaffold a new host |
@@ -140,10 +142,15 @@ just bootstrap myserver st0o0           # connects as st0o0 instead of root
 Run specific roles with `--tags`:
 
 ```bash
-just run --tags base              # only base packages + timezone
-just run --tags docker            # only Docker
-just run --tags hostname          # only set hostnames
-just run --tags node_agent        # only Alloy/Hawser agents
+just run --tags base                  # only base packages + timezone
+just run --tags docker                # only Docker
+just run --tags hostname              # only set hostnames
+just run --tags motd                  # only login banner
+just run --tags swap                  # only swap configuration
+just run --tags ufw                   # only firewall
+just run --tags cron                  # only cron jobs
+just run --tags unattended_upgrades   # only auto-updates
+just run --tags node_agent            # only Alloy/Hawser agents
 just deploy myserver --tags docker,base
 ```
 
@@ -165,7 +172,7 @@ ansible/
   .sops.yaml                    # SOPS encryption rules (age public key)
 
   bootstrap.yml                 # One-time playbook: root → deploy user + SSH
-  run.yml                       # Main playbook: hostname, base, docker, node_agent
+  run.yml                       # Main playbook: all roles
 
   hosts.yml                     # Flat inventory — just hostnames
   group_vars/all/               # Defaults shared by all hosts
@@ -179,8 +186,13 @@ ansible/
 
   roles/
     hostname/                   # Sets server hostname to inventory name
-    base/                       # Timezone, apt packages (btop, git, curl)
+    base/                       # Timezone, apt packages (btop, git, curl, figlet)
+    swap/                       # Optional swap file configuration
+    unattended_upgrades/        # Automatic security updates
+    ufw/                        # Firewall (SSH allowed by default)
     docker/                     # Docker CE from official repo
+    cron/                       # Scheduled tasks (docker prune, custom jobs)
+    motd/                       # Colored login banner with system info
     ssh/                        # SSH key management + sshd hardening
     node_agent/                 # Alloy + Hawser + optional Bifrost
 ```
@@ -195,7 +207,7 @@ Sets the server's hostname to match the Ansible inventory name. Runs on every co
 
 ### base
 
-Installs standard tools (`btop`, `git`, `curl`, `ca-certificates`), sets the timezone, and optionally runs `apt dist-upgrade`.
+Installs standard tools (`btop`, `git`, `curl`, `ca-certificates`, `figlet`), sets the timezone, and optionally runs `apt dist-upgrade`.
 
 **Variables** (`group_vars/all/base.yml`):
 - `base_timezone` — default: `Europe/Berlin`
@@ -221,6 +233,61 @@ SSHD is hardened via a drop-in config at `/etc/ssh/sshd_config.d/99-ansible-hard
 - `ssh_yubikey_public_keys` — YubiKey public keys for authorized_keys
 - `ssh_bitwarden_folder` — Bitwarden folder for backup keys
 - `ssh_exclusive` — if `true`, only managed keys are allowed (removes others)
+
+### swap
+
+Configures a swap file. Useful for Pis and LXC containers with limited RAM. Disabled by default — enable per host.
+
+**Variables** (`host_vars/<hostname>/vars.yml`):
+- `swap_enabled` — default: `false`
+- `swap_size` — default: `2G`
+- `swap_swappiness` — default: `10` (prefer RAM over swap)
+
+### unattended_upgrades
+
+Automatic security updates via `apt`. Disabled by default — enable per host. Supports package blacklists and reboot control.
+
+**Variables** (`host_vars/<hostname>/vars.yml`):
+- `unattended_upgrades_enabled` — default: `false`
+- `unattended_upgrades_blacklist` — list of packages to never auto-update (e.g. `["docker-ce", "wireguard*"]`)
+- `unattended_upgrades_skip_reboot_required` — if `true`, only installs updates that don't require a reboot (default: `false`)
+- `unattended_upgrades_auto_reboot` — if `true`, reboots automatically after updates (default: `false`)
+- `unattended_upgrades_auto_reboot_time` — reboot time window (default: `04:00`)
+
+### ufw
+
+Firewall using UFW. SSH is allowed by default, everything else denied incoming.
+
+**Variables** (`defaults/main.yml` + `host_vars/<hostname>/vars.yml`):
+- `ufw_enabled` — default: `true`
+- `ufw_rules` — default: `[{rule: allow, port: 22, proto: tcp, comment: "SSH"}]`
+- `ufw_extra_rules` — per-host additional rules, e.g.:
+  ```yaml
+  ufw_extra_rules:
+    - { rule: allow, port: 8978, proto: tcp, comment: "CloudBeaver" }
+    - { rule: allow, port: 5432, proto: tcp, comment: "PostgreSQL" }
+  ```
+
+### cron
+
+Scheduled maintenance tasks. Docker system prune runs weekly by default.
+
+**Variables** (`host_vars/<hostname>/vars.yml`):
+- `cron_enabled` — default: `true`
+- `cron_docker_prune` — default: `true` (weekly Sunday 03:00)
+- `cron_docker_prune_schedule` — cron expression (default: `0 3 * * 0`)
+- `cron_extra_jobs` — list of custom cron jobs:
+  ```yaml
+  cron_extra_jobs:
+    - { name: "cleanup-logs", job: "find /var/log -name '*.gz' -mtime +30 -delete", schedule: "0 4 * * 0" }
+  ```
+
+### motd
+
+Colored login banner showing hostname (as ASCII art via figlet), OS, kernel, IPs, Docker containers, performance bars (load, memory, disk with color-coded thresholds), and available config tools (armbian-config, raspi-config, nmtui).
+
+**Variables** (`host_vars/<hostname>/vars.yml`):
+- `motd_enabled` — default: `true`
 
 ### node_agent
 
