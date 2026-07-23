@@ -1,0 +1,53 @@
+{
+    "name": "Homelab Catalog — Linux",
+    "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "24"
+        }
+    },
+
+    "mounts": [
+        "source=homelab-catalog-ssh,target=/home/vscode/.ssh,type=volume",
+        "source=homelab-catalog-sops,target=/home/vscode/.config/sops,type=volume",
+        "source=/run/user/1000/gnupg/S.gpg-agent.ssh,target=/run/user/1000/gnupg/S.gpg-agent.ssh,type=bind",
+        "source=${localEnv:HOME}/snap/bw/current/Bitwarden CLI,target=/home/vscode/.config/Bitwarden CLI,type=bind,consistency=cached"
+    ],
+
+    "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.ssh /home/vscode/.config && sudo chmod +x scripts/install-dependencies.sh && bash scripts/install-dependencies.sh",
+
+    "postStartCommand": "bash scripts/update-dotfiles.sh",
+
+    "remoteEnv": {
+        "BW_SERVER_URL": "${localEnv:BW_SERVER_URL}"
+    },
+
+    "containerEnv": {
+        "ANSIBLE_CONFIG": "${containerWorkspaceFolder}/ansible/ansible.cfg",
+        "SOPS_AGE_KEY_FILE": "/home/vscode/.config/sops/age/keys.txt",
+        "SSH_AUTH_SOCK": "/run/user/1000/gnupg/S.gpg-agent.ssh",
+        "LANG": "C.UTF-8",
+        "LC_ALL": "C.UTF-8"
+    },
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "redhat.ansible",
+                "ms-azuretools.vscode-docker"
+            ],
+            "settings": {
+                "ansible.python.interpreterPath": "/usr/bin/python3",
+                "ansible.ansible.path": "/usr/bin/ansible",
+                "ansible.ansibleLint.path": "/usr/bin/ansible-lint",
+                "ansible.ansibleLint.enabled": true,
+                "files.associations": {
+                    "ansible/**/*.yml": "ansible",
+                    "ansible/**/*.yaml": "ansible"
+                },
+                "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font Mono', monospace"
+            }
+        }
+    }
+}

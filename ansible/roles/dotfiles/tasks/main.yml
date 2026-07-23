@@ -1,0 +1,81 @@
+- name: Skip if dotfiles disabled
+  ansible.builtin.meta: end_role
+  when: not dotfiles_enabled
+
+- name: Check deploy user's home directory exists
+  ansible.builtin.stat:
+    path: "/home/{{ ssh_user }}"
+  register: _dotfiles_home
+
+- name: Fail if deploy user's home directory doesn't exist
+  ansible.builtin.assert:
+    that:
+      - _dotfiles_home.stat.exists
+      - _dotfiles_home.stat.isdir
+    fail_msg: >-
+      /home/{{ ssh_user }} doesn't exist. Run bootstrap.yml (the ssh role)
+      on this host first.
+
+- name: Install zsh
+  ansible.builtin.apt:
+    name: zsh
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Set zsh as deploy user's login shell
+  ansible.builtin.user:
+    name: "{{ ssh_user }}"
+    shell: /usr/bin/zsh
+
+- name: Check if chezmoi is installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/chezmoi
+  register: _chezmoi_bin
+
+- name: Install chezmoi
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl -fsLS get.chezmoi.io | sh -s -- -b /usr/local/bin
+  args:
+    executable: /bin/bash
+    creates: /usr/local/bin/chezmoi
+  when: not _chezmoi_bin.stat.exists
+
+- name: Ensure chezmoi config dir exists
+  ansible.builtin.file:
+    path: "/home/{{ ssh_user }}/.config/chezmoi"
+    state: directory
+    owner: "{{ ssh_user }}"
+    group: "{{ ssh_user }}"
+    mode: "0755"
+
+- name: Deploy chezmoi config (server profile)
+  ansible.builtin.copy:
+    dest: "/home/{{ ssh_user }}/.config/chezmoi/chezmoi.toml"
+    owner: "{{ ssh_user }}"
+    group: "{{ ssh_user }}"
+    mode: "0644"
+    content: |
+      # Managed by Ansible -- do not edit manually.
+      [data]
+          profile = "server"
+
+- name: Check if dotfiles source is already cloned
+  ansible.builtin.stat:
+    path: "/home/{{ ssh_user }}/.local/share/chezmoi/.git"
+  register: _chezmoi_source
+
+- name: Initialize chezmoi from dotfiles repo
+  ansible.builtin.command:
+    cmd: "chezmoi init {{ dotfiles_github_user }}"
+  become: true
+  become_user: "{{ ssh_user }}"
+  when: not _chezmoi_source.stat.exists
+
+- name: Apply dotfiles (pulls latest + applies, every run)
+  ansible.builtin.command:
+    cmd: chezmoi update --force
+  become: true
+  become_user: "{{ ssh_user }}"
+  changed_when: false
