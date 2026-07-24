@@ -136,6 +136,18 @@ if [ -n "$CONFIG_CMD" ] || [ -n "$MONITOR_CMD" ]; then
     echo ""
 fi
 
+# Aliases (from dotfiles' dot_bash_aliases.d/ — keep in sync manually,
+# this repo doesn't depend on the dotfiles one)
+echo -e " ${C}Aliases:${R}"
+echo ""
+echo -e "  ${G}clh${R}                 clear shell history"
+echo -e "  ${G}update${R} / ${G}upgradable${R}   apt update && upgrade / list pending"
+echo -e "  ${G}dc${R} / ${G}dcu${R} / ${G}dcd${R} / ${G}dcl${R}   docker compose up|down|logs -f"
+echo -e "  ${G}dps${R} / ${G}dprune${R}       docker ps / system prune"
+echo -e "  ${G}dbackup${R} / ${G}drestore${R} backup / restore docker volumes"
+echo -e "  ${G}cdd${R}                 cd into a container's compose dir"
+echo ""
+
 # Last login
 LAST=$(last -1 -R "$USER" 2>/dev/null | head -1)
 if [ -n "$LAST" ] && ! echo "$LAST" | grep -q "^$"; then
