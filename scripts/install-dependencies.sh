@@ -114,7 +114,7 @@ echo "==> Configuring system-wide tmux autostart..."
 TMUX_AUTOSTART_MARKER="# homelab-catalog: tmux autostart"
 TMUX_AUTOSTART_SNIPPET="
 ${TMUX_AUTOSTART_MARKER}
-if [ -z \"\${TMUX:-}\" ] && [ -n \"\${PS1:-}\" ] && command -v tmux >/dev/null 2>&1; then
+if [ -z \"\${NO_AUTOSTART:-}\" ] && [ -z \"\${TMUX:-}\" ] && [ -n \"\${PS1:-}\" ] && command -v tmux >/dev/null 2>&1; then
     exec tmux new-session -A -s main
 fi
 "

@@ -20,7 +20,12 @@
     "postStartCommand": "bash scripts/update-dotfiles.sh",
 
     "remoteEnv": {
-        "BW_SERVER_URL": "${localEnv:BW_SERVER_URL}"
+        "BW_SERVER_URL": "${localEnv:BW_SERVER_URL}",
+        // Dotfiles auto-attach a persistent tmux session on every interactive
+        // shell. Without this, SSHing from a devcontainer shell into a host
+        // (which also auto-attaches tmux) nests tmux inside tmux — this
+        // container layer doesn't need its own persistent session, so skip it.
+        "NO_AUTOSTART": "1"
     },
 
     "containerEnv": {
@@ -28,7 +33,11 @@
         "SOPS_AGE_KEY_FILE": "/home/vscode/.config/sops/age/keys.txt",
         "SSH_AUTH_SOCK": "/run/user/1000/gnupg/S.gpg-agent.ssh",
         "LANG": "C.UTF-8",
-        "LC_ALL": "C.UTF-8"
+        "LC_ALL": "C.UTF-8",
+        "TZ": "${localEnv:TZ:Europe/Berlin}",
+        // Drives the devcontainer badge in starship.toml (see dotfiles repo)
+        // so it's visually obvious you're inside the devcontainer.
+        "DEVCONTAINER": "1"
     },
 
     "customizations": {
