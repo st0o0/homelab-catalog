@@ -144,6 +144,13 @@ cat > "$HOME/.config/chezmoi/chezmoi.toml" <<'CHEZMOI_TOML'
 CHEZMOI_TOML
 "$HOME/.local/bin/chezmoi" init --apply st0o0
 
+echo "==> Installing fzf (required by the oh-my-zsh fzf-tab completion plugin)..."
+if [ ! -x "$HOME/.local/bin/fzf" ]; then
+    "$HOME/.local/bin/install-cli-tools.sh" fzf
+else
+    echo "    Already installed"
+fi
+
 echo "==> Setting up devcontainer-specific shell aliases..."
 ALIAS_DIR="$HOME/.bash_aliases.d"
 mkdir -p "$ALIAS_DIR"
@@ -169,6 +176,7 @@ sops --version
 just --version
 tmux -V
 zsh --version
+"$HOME/.local/bin/fzf" --version
 "$HOME/.local/bin/starship" --version | head -1
 "$HOME/.local/bin/chezmoi" --version | head -1
 echo "    SSH key:  $([ -f "$HOME/.ssh/id_ansible" ] && echo 'present' || echo 'missing')"
