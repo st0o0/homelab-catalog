@@ -292,7 +292,7 @@ Colored login banner showing hostname (as ASCII art via figlet), OS, kernel, IPs
 
 ### dotfiles
 
-Installs zsh, sets it as the deploy user's login shell, then installs [chezmoi](https://www.chezmoi.io) and applies the `server` profile from the [dotfiles repo](https://github.com/st0o0/dotfiles) (`.zshrc`, `.tmux.conf`, aliases). Runs on every converge (`chezmoi update --force`), so dotfile changes propagate on the next `just deploy`/`just update`.
+Installs zsh, tmux, and starship, sets zsh as the deploy user's login shell, then installs [chezmoi](https://www.chezmoi.io) and applies the `server` profile from the [dotfiles repo](https://github.com/st0o0/dotfiles) (`.zshrc`, `.tmux.conf`, aliases). `.zshrc` auto-attaches a persistent tmux session on login. Runs on every converge (`chezmoi update --force`), so dotfile changes propagate on the next `just deploy`/`just update`.
 
 **Variables** (`roles/dotfiles/defaults/main.yml`):
 - `dotfiles_enabled` — default: `true`

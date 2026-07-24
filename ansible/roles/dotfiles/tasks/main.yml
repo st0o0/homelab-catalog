@@ -28,6 +28,13 @@
     name: "{{ ssh_user }}"
     shell: /usr/bin/zsh
 
+- name: Install tmux
+  ansible.builtin.apt:
+    name: tmux
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
 - name: Check if chezmoi is installed
   ansible.builtin.stat:
     path: /usr/local/bin/chezmoi
@@ -41,6 +48,20 @@
     executable: /bin/bash
     creates: /usr/local/bin/chezmoi
   when: not _chezmoi_bin.stat.exists
+
+- name: Check if starship is installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/starship
+  register: _starship_bin
+
+- name: Install starship
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl -sS https://starship.rs/install.sh | sh -s -- --yes --bin-dir /usr/local/bin
+  args:
+    executable: /bin/bash
+    creates: /usr/local/bin/starship
+  when: not _starship_bin.stat.exists
 
 - name: Ensure chezmoi config dir exists
   ansible.builtin.file:
