@@ -203,7 +203,6 @@
           IdentityFile ~/.ssh/id_backup_{{ inventory_hostname }}
   delegate_to: localhost
   become: false
-  when: not _ssh_local_backup.stat.exists
 
 - name: Deploy authorized keys
   ansible.posix.authorized_key:

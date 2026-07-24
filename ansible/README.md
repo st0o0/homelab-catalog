@@ -134,6 +134,7 @@ just bootstrap myserver st0o0           # connects as st0o0 instead of root
 | `just new-host HOST` | Scaffold a new host |
 | `just show-key` | Show container SSH public key |
 | `just trust HOST` | Test if Ansible can reach a host |
+| `just sshsync` | Backfill `~/.ssh/config` entries for hosts with an existing backup key |
 | `just rename OLD NEW` | Rename a host everywhere |
 | `just init` | First-time SOPS/age setup |
 | `just lint` | Run ansible-lint |

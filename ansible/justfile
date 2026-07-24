@@ -155,6 +155,33 @@ trust HOST:
         echo "Then run: just bootstrap {{HOST}} $USER"
     fi
 
+# Backfill ~/.ssh/config entries for hosts that already have a backup key
+# (one-time fix for hosts bootstrapped before this was automated)
+sshsync:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    touch "$HOME/.ssh/config"
+    chmod 600 "$HOME/.ssh/config"
+    HOSTS=$(ansible-inventory --list 2>/dev/null | jq -r '._meta.hostvars | keys[]')
+    for HOST in $HOSTS; do
+        KEY="$HOME/.ssh/id_backup_$HOST"
+        if [ ! -f "$KEY" ]; then
+            echo "  ✗ $HOST — no backup key, skipped"
+            continue
+        fi
+        INV=$(ansible-inventory --host "$HOST" 2>/dev/null)
+        HOST_IP=$(echo "$INV" | jq -r '.ansible_host // empty')
+        SSH_USER=$(echo "$INV" | jq -r '.ansible_user // empty')
+        if [ -z "$HOST_IP" ] || [ -z "$SSH_USER" ]; then
+            echo "  ✗ $HOST — missing ansible_host/ansible_user in inventory, skipped"
+            continue
+        fi
+        sed -i "/# BEGIN ANSIBLE MANAGED - $HOST\$/,/# END ANSIBLE MANAGED - $HOST\$/d" "$HOME/.ssh/config"
+        printf '# BEGIN ANSIBLE MANAGED - %s\nHost %s %s\n    HostName %s\n    User %s\n    IdentityFile %s\n# END ANSIBLE MANAGED - %s\n' \
+            "$HOST" "$HOST" "$HOST_IP" "$HOST_IP" "$SSH_USER" "$KEY" "$HOST" >> "$HOME/.ssh/config"
+        echo "  ✓ $HOST — SSH config entry written"
+    done
+
 # Show bootstrap status of all hosts
 check:
     #!/usr/bin/env bash
