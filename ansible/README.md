@@ -293,7 +293,16 @@ Colored login banner showing hostname (as ASCII art via figlet), OS, kernel, IPs
 
 ### dotfiles
 
-Installs zsh, tmux, and starship, sets zsh as the deploy user's login shell, then installs [chezmoi](https://www.chezmoi.io) and applies the `server` profile from the [dotfiles repo](https://github.com/st0o0/dotfiles) (`.zshrc`, `.tmux.conf`, aliases). `.zshrc` auto-attaches a persistent tmux session on login. Runs on every converge (`chezmoi update --force`), so dotfile changes propagate on the next `just deploy`/`just update`.
+Delegates to the [dotfiles repo](https://github.com/st0o0/dotfiles)'s
+`install.sh --profile server`, which installs the full shell toolchain
+(zsh, tmux, chezmoi, starship, zoxide) and applies the `server` profile
+(`.zshrc`, `.tmux.conf`, aliases). On first run, the script installs
+everything and runs `chezmoi init --apply`; on subsequent converges, only
+`chezmoi update --force` runs, so dotfile changes propagate on the next
+`just deploy`/`just run`.
+
+The dotfiles repo's `install.sh` is the single source of truth for tool
+installation — this role does not install shell tools itself.
 
 **Variables** (`roles/dotfiles/defaults/main.yml`):
 - `dotfiles_enabled` — default: `true`
@@ -403,7 +412,12 @@ Two platform-specific configurations under `.devcontainer/`:
 
 ### Installed tools
 
-Ansible (via pip), ansible-lint, SOPS, age, just, jq, Bitwarden CLI, sshpass, zsh, tmux, starship, chezmoi
+The DevContainer's `postCreateCommand` installs tools in two layers:
+
+| Layer | Tools | Source |
+|---|---|---|
+| Shell toolchain | zsh, tmux, chezmoi, starship, zoxide, fzf, kitty | `dotfiles/install.sh --profile workstation` |
+| Infrastructure | Ansible, ansible-lint, SOPS, age, just, jq, Bitwarden CLI, sshpass | `scripts/install-dependencies.sh` |
 
 ### Shell prompt icons look broken / boxes instead of icons (Windows)
 

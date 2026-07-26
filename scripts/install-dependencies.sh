@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "==> Installing system dependencies..."
+# --------------------------------------------------------------------------
+# Layer 1: Shell toolchain (zsh, tmux, starship, chezmoi, fzf, zoxide)
+# --------------------------------------------------------------------------
+# Owned by the dotfiles repo — single source of truth for shell tools.
+echo "==> Installing shell toolchain via dotfiles/install.sh..."
+curl -fsSL https://raw.githubusercontent.com/st0o0/dotfiles/main/install.sh \
+    | bash -s -- --profile workstation
+
+# --------------------------------------------------------------------------
+# Layer 2: Infrastructure tools (DevContainer-specific)
+# --------------------------------------------------------------------------
+echo "==> Installing infrastructure dependencies..."
 sudo apt-get update -qq
 sudo apt-get install -y -qq --no-install-recommends \
     sshpass \
     python3-pip \
     python3-venv \
     jq \
-    tmux \
-    zsh \
     > /dev/null
 
 echo "==> Installing Ansible via pip..."
@@ -29,8 +38,6 @@ else
     echo "    No BW_SERVER_URL set — using Bitwarden cloud"
 fi
 
-# On Linux hosts with the BW snap, the session data may be available
-# at a predictable path. Try common locations.
 BW_HOST_DIRS=(
     "/home/${USER:-vscode}/snap/bw/current/Bitwarden CLI"
     "/root/snap/bw/current/Bitwarden CLI"
@@ -93,24 +100,10 @@ else
     echo "    age-keygen -o $AGE_KEY_FILE"
 fi
 
-echo "==> Installing starship..."
-if [ ! -x "$HOME/.local/bin/starship" ]; then
-    curl -fsSL https://starship.rs/install.sh | sh -s -- -b "$HOME/.local/bin" -y > /dev/null
-else
-    echo "    Already installed"
-fi
-
-echo "==> Setting zsh as default shell..."
-if [ "${SHELL:-}" != "$(command -v zsh)" ]; then
-    sudo chsh -s "$(command -v zsh)" "${USER:-vscode}"
-fi
-
+# --------------------------------------------------------------------------
+# Layer 3: DevContainer shell customizations
+# --------------------------------------------------------------------------
 echo "==> Configuring system-wide tmux autostart..."
-# VS Code's default terminal profile can't be set from devcontainer.json
-# (terminal.integrated.defaultProfile.* is application-scoped, not
-# workspace/remote-scoped). Hooking /etc/bash.bashrc and /etc/zsh/zshrc
-# instead works regardless of which shell VS Code launches, and survives
-# `chezmoi update` since it only manages files under $HOME.
 TMUX_AUTOSTART_MARKER="# homelab-catalog: tmux autostart"
 TMUX_AUTOSTART_SNIPPET="
 ${TMUX_AUTOSTART_MARKER}
@@ -129,28 +122,6 @@ for rc in /etc/bash.bashrc /etc/zsh/zshrc /etc/profile /etc/zsh/zprofile; do
     fi
 done
 
-echo "==> Installing chezmoi..."
-if [ ! -x "$HOME/.local/bin/chezmoi" ]; then
-    sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
-else
-    echo "    Already installed"
-fi
-
-echo "==> Applying dotfiles (workstation profile: tmux, kitty n/a, aliases)..."
-mkdir -p "$HOME/.config/chezmoi"
-cat > "$HOME/.config/chezmoi/chezmoi.toml" <<'CHEZMOI_TOML'
-[data]
-    profile = "workstation"
-CHEZMOI_TOML
-"$HOME/.local/bin/chezmoi" init --apply st0o0
-
-echo "==> Installing fzf (required by the oh-my-zsh fzf-tab completion plugin)..."
-if [ ! -x "$HOME/.local/bin/fzf" ]; then
-    "$HOME/.local/bin/install-cli-tools.sh" fzf
-else
-    echo "    Already installed"
-fi
-
 echo "==> Setting up devcontainer-specific shell aliases..."
 ALIAS_DIR="$HOME/.bash_aliases.d"
 mkdir -p "$ALIAS_DIR"
@@ -168,6 +139,9 @@ else
     echo "    Aliases already present"
 fi
 
+# --------------------------------------------------------------------------
+# Verify
+# --------------------------------------------------------------------------
 echo "==> Verifying installations..."
 ansible --version | head -1
 bw --version
@@ -176,9 +150,9 @@ sops --version
 just --version
 tmux -V
 zsh --version
-"$HOME/.local/bin/fzf" --version
-"$HOME/.local/bin/starship" --version | head -1
-"$HOME/.local/bin/chezmoi" --version | head -1
+fzf --version
+starship --version | head -1
+chezmoi --version | head -1
 echo "    SSH key:  $([ -f "$HOME/.ssh/id_ansible" ] && echo 'present' || echo 'missing')"
 echo "    Age key:  $([ -f "$AGE_KEY_FILE" ] && echo 'present' || echo 'missing')"
 
