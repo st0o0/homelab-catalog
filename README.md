@@ -111,18 +111,12 @@ asset.
 
 ## Categories
 
-| Category | Services |
+| Category | Templates |
 |---|---|
-| Media | Jellyfin, Sonarr, Radarr, Prowlarr, SABnzbd, Audiobookshelf, Pinchflat, Seerr, FlareSolverr, Tracearr, Recyclarr, Mediathekarr, Arr Dashboard |
-| Smart Home | Home Assistant, Zigbee2MQTT, Mosquitto, MQTT UI, Matter Server |
-| Photos | Immich Server, Immich ML |
-| Auth & Security | Authentik, Vaultwarden |
-| Networking | Traefik, Gluetun, Pangolin, Gerbil, Bifrost, Hawser |
-| Monitoring | Uptime Kuma, Dockhand |
-| Productivity | Mealie, Actual Budget |
-| Backup | Duplicati |
-| Data | PostgreSQL, Redis, Valkey |
-| Observability | Grafana, VictoriaMetrics, VictoriaLogs, Grafana Alloy, NUT Exporter |
+| Monitoring | Hawser, Hawser Edge, Hawser Edge + Bifrost |
+| Networking | Bifrost |
+| Observability | Observability (central), Observability Agent, UPS Monitor |
+| Photos | Immich |
 
 ## How It Works
 
@@ -142,7 +136,7 @@ main branch                    release-please PR              GitHub Release
 - Every push to `main` updates release-please's standing "catalog" release PR (CHANGELOG + version bump), it doesn't publish anything by itself
 - Merging that release PR is what cuts the actual GitHub Release and rebuilds+attaches `templates.json`
 - The Portainer v2 template format requires a single JSON file, so the build step is necessary
-- Ansible infra changes (`ansible/`) are versioned completely separately as the "ansible" component — see [CONTRIBUTING.md](CONTRIBUTING.md)
+- Server provisioning lives in a separate repo: [homelab-ansible](https://github.com/st0o0/homelab-ansible)
 
 ## Guidelines
 

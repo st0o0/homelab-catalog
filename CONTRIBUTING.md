@@ -3,9 +3,7 @@
 ## Commit convention
 
 This repo uses [release-please](https://github.com/googleapis/release-please)
-to generate CHANGELOGs and version tags for two independently-versioned
-components — `ansible` (everything under `ansible/`) and `catalog`
-(everything else, mainly `templates/` and `stacks/`). It parses commit
+to generate CHANGELOGs and version tags for the catalog. It parses commit
 messages on `main` by walking the git log, so with this repo's
 rebase/merge workflow **every individual commit** (not just a PR title)
 must follow [Conventional Commits](https://www.conventionalcommits.org/):
@@ -13,7 +11,7 @@ must follow [Conventional Commits](https://www.conventionalcommits.org/):
 ```
 <type>(<optional scope>): <description>
 
-feat(ansible): add fail2ban role
+feat(catalog): add jellyfin template
 fix(catalog): correct jellyfin volume bind path
 docs: clarify template field reference
 ```
@@ -27,27 +25,26 @@ these up (`git rebase -i`) before merging.
 
 ```
 templates/                        One JSON file per service, grouped by category
-├── media/
-│   ├── jellyfin.json
-│   ├── sonarr.json
-│   └── ...
-├── smart-home/
-├── photos/
-├── auth/
-├── networking/
 ├── monitoring/
-├── productivity/
-├── backup/
-├── data/
-└── observability/
+│   ├── hawser.json
+│   ├── hawser-edge.json
+│   └── hawser-edge-bifrost.json
+├── networking/
+│   └── bifrost.json
+├── observability/
+│   ├── observability.json
+│   ├── observability-agent.json
+│   └── ups-monitor.json
+└── photos/
+    └── immich.json
+stacks/                           Docker Compose files referenced by type-3 templates
 scripts/
 └── build.ps1                     Validates all templates and merges into templates.json
 .github/workflows/
 ├── validate.yml                  Validates templates on every push/PR (no publishing)
-├── release-please.yml            Manages release PRs + CHANGELOGs; on a "catalog" release,
+├── release-please.yml            Manages release PRs + CHANGELOGs; on release,
 │                                  rebuilds templates.json and attaches it as a release asset
-├── commitlint.yml                Enforces Conventional Commits on every PR commit
-└── ansible.yml                   Lints/syntax-checks ansible/**
+└── commitlint.yml                Enforces Conventional Commits on every PR commit
 ```
 
 `templates.json` is never committed to the repo — it's generated fresh by

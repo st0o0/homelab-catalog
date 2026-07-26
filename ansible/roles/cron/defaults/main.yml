@@ -1,4 +1,0 @@
-cron_enabled: true
-cron_docker_prune: true
-cron_docker_prune_schedule: "0 3 * * 0"
-cron_extra_jobs: []
