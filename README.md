@@ -2,6 +2,8 @@
 
 Dockhand template catalog for homelab services. Each service is defined as an individual JSON file under `templates/` and automatically merged into a single `templates.json`, published as a [GitHub Release](https://github.com/st0o0/homelab-catalog/releases) asset via CI.
 
+**Related repos:** [homelab-ansible](https://github.com/st0o0/homelab-ansible) (server provisioning) · [dotfiles](https://github.com/st0o0/dotfiles) (shell toolchain)
+
 ## Quick Start
 
 ### 1. Connect to Dockhand
