@@ -3,3 +3,5 @@ templates.json
 
 .vscode/
 Thumbs.db
+.claude/
+node_modules/

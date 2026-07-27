@@ -1,29 +1,56 @@
 # Contributing
 
+## Commit convention
+
+This repo uses [release-please](https://github.com/googleapis/release-please)
+to generate CHANGELOGs and version tags for the catalog. It parses commit
+messages on `main` by walking the git log, so with this repo's
+rebase/merge workflow **every individual commit** (not just a PR title)
+must follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+<type>(<optional scope>): <description>
+
+feat(catalog): add jellyfin template
+fix(catalog): correct jellyfin volume bind path
+docs: clarify template field reference
+```
+
+Common types: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `build`,
+`ci`, `chore`, `revert`. A CI check (`commitlint.yml`) lints every commit
+in a PR against this format and fails if any of them don't match — clean
+these up (`git rebase -i`) before merging.
+
 ## Project Structure
 
 ```
 templates/                        One JSON file per service, grouped by category
-├── media/
-│   ├── jellyfin.json
-│   ├── sonarr.json
-│   └── ...
-├── smart-home/
-├── photos/
-├── auth/
-├── networking/
 ├── monitoring/
-├── productivity/
-├── backup/
-├── data/
-└── observability/
+│   ├── hawser.json
+│   ├── hawser-edge.json
+│   └── hawser-edge-bifrost.json
+├── networking/
+│   └── bifrost.json
+├── observability/
+│   ├── observability.json
+│   ├── observability-agent.json
+│   └── ups-monitor.json
+└── photos/
+    └── immich.json
+stacks/                           Docker Compose files referenced by type-3 templates
 scripts/
 └── build.ps1                     Validates all templates and merges into templates.json
 .github/workflows/
-└── validate.yml                  CI pipeline: validate → build → deploy to release branch
+├── validate.yml                  Validates templates on every push/PR (no publishing)
+├── release-please.yml            Manages release PRs + CHANGELOGs; on release,
+│                                  rebuilds templates.json and attaches it as a release asset
+└── commitlint.yml                Enforces Conventional Commits on every PR commit
 ```
 
-The `templates.json` consumed by Dockhand lives only on the `release` branch. It is auto-generated — never edit it directly.
+`templates.json` is never committed to the repo — it's generated fresh by
+CI and published only as a GitHub Release asset (see the root
+[README.md](README.md#how-it-works)) for the `catalog` component's
+releases.
 
 ## Adding a Template
 
@@ -94,15 +121,19 @@ The build script checks:
 
 ### 4. Commit and push
 
-Only commit your template file under `templates/`. CI handles building and deploying:
+Only commit your template file under `templates/`, with a Conventional
+Commits message (see above) so release-please picks it up:
 
 ```bash
 git add templates/media/my-service.json
-git commit -m "feat: add my-service template"
+git commit -m "feat(catalog): add my-service template"
 git push
 ```
 
-On push to `main`, CI validates all templates, merges them, and deploys `templates.json` to the `release` branch. Dockhand picks up the change within one hour (its cache interval).
+On push to `main`, CI validates all templates and release-please updates
+its standing "catalog" release PR with a CHANGELOG entry. Merging that PR
+cuts a GitHub Release and publishes the rebuilt `templates.json` as its
+asset — Dockhand picks up the change within one hour (its cache interval).
 
 ## Field Reference
 
