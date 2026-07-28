@@ -1,6 +1,8 @@
 # homelab-catalog
 
-Dockhand template catalog for homelab services. Each service is defined as an individual JSON file under `templates/` and automatically merged into a single `templates.json` on the `release` branch via CI.
+Dockhand template catalog for homelab services. Each service is defined as an individual JSON file under `templates/` and automatically merged into a single `templates.json`, published as a [GitHub Release](https://github.com/st0o0/homelab-catalog/releases) asset via CI.
+
+**Related repos:** [homelab-ansible](https://github.com/st0o0/homelab-ansible) (server provisioning) · [dotfiles](https://github.com/st0o0/dotfiles) (shell toolchain)
 
 ## Quick Start
 
@@ -11,7 +13,9 @@ In the Dockhand UI go to **Templates → Sources** and add a new source:
 | Field | Value |
 |---|---|
 | Name | `Homelab` |
-| URL | `https://raw.githubusercontent.com/st0o0/homelab-catalog/release/templates.json` |
+| URL | `https://github.com/st0o0/homelab-catalog/releases/latest/download/templates.json` |
+
+That URL always resolves to the newest release's asset. To pin Dockhand to a specific known-good version instead, use `.../releases/download/catalog-vX.Y.Z/templates.json`.
 
 Dockhand fetches and caches the catalog for one hour. After adding the source, switch to the **Templates** tab to browse and deploy.
 
@@ -73,15 +77,22 @@ For a multi-container compose stack, use `type: 3` with a repository reference:
 
 ### Commit and push
 
-Only commit your template file — CI handles the rest:
+Only commit your template file — CI handles the rest. Commit messages must
+follow [Conventional Commits](https://www.conventionalcommits.org/) (see
+[CONTRIBUTING.md](CONTRIBUTING.md)) so [release-please](https://github.com/googleapis/release-please)
+can pick it up correctly:
 
 ```bash
 git add templates/media/my-service.json
-git commit -m "feat: add my-service template"
+git commit -m "feat(catalog): add my-service template"
 git push
 ```
 
-CI validates all templates and deploys the merged `templates.json` to the `release` branch automatically.
+CI validates every template on each push/PR. Merging to `main` lets
+release-please open (or update) a "catalog" release PR with a generated
+CHANGELOG entry; merging *that* PR cuts a GitHub Release, which triggers a
+second job that rebuilds `templates.json` and attaches it as a release
+asset.
 
 ## Field Reference
 
@@ -102,38 +113,32 @@ CI validates all templates and deploys the merged `templates.json` to the `relea
 
 ## Categories
 
-| Category | Services |
+| Category | Templates |
 |---|---|
-| Media | Jellyfin, Sonarr, Radarr, Prowlarr, SABnzbd, Audiobookshelf, Pinchflat, Seerr, FlareSolverr, Tracearr, Recyclarr, Mediathekarr, Arr Dashboard |
-| Smart Home | Home Assistant, Zigbee2MQTT, Mosquitto, MQTT UI, Matter Server |
-| Photos | Immich Server, Immich ML |
-| Auth & Security | Authentik, Vaultwarden |
-| Networking | Traefik, Gluetun, Pangolin, Gerbil, Bifrost, Hawser |
-| Monitoring | Uptime Kuma, Dockhand |
-| Productivity | Mealie, Actual Budget |
-| Backup | Duplicati |
-| Data | PostgreSQL, Redis, Valkey |
-| Observability | Grafana, VictoriaMetrics, VictoriaLogs, Grafana Alloy, NUT Exporter |
+| Monitoring | Hawser, Hawser Edge, Hawser Edge + Bifrost |
+| Networking | Bifrost |
+| Observability | Observability (central), Observability Agent, UPS Monitor |
+| Photos | Immich |
 
 ## How It Works
 
 ```
-main branch                              release branch
-┌─────────────────────────────┐          ┌──────────────────┐
-│ templates/                  │          │ templates.json    │
-│   media/jellyfin.json       │  CI      │   (merged output) │
-│   media/sonarr.json         │ ──────►  │                  │
-│   ...                       │  build   │                  │
-│ scripts/build.ps1           │  + push  │                  │
-└─────────────────────────────┘          └──────────────────┘
-                                                  │
-                                           Dockhand fetches
-                                           via raw URL
+main branch                    release-please PR              GitHub Release
+┌───────────────────────┐      ┌──────────────────────┐      ┌────────────────────┐
+│ templates/             │ CI   │ chore(catalog): rel.  │ merge │ tag catalog-vX.Y.Z │
+│   media/jellyfin.json  │ ───► │ CHANGELOG.md          │ ───► │ templates.json      │
+│   ...                  │ open │ (version bump)        │       │ (release asset)    │
+│ scripts/build.ps1      │  PR  │                       │      └────────────────────┘
+└───────────────────────┘      └──────────────────────┘               │
+                                                                Dockhand fetches
+                                                                /releases/latest/download
 ```
 
-- **`main`** holds the source files: individual templates, the build script, CI config, and docs
-- **`release`** holds only the merged `templates.json` — auto-updated by CI on every push to `main`
+- **`main`** holds the source files: individual templates, the build script, CI config, and docs — never the merged `templates.json`
+- Every push to `main` updates release-please's standing "catalog" release PR (CHANGELOG + version bump), it doesn't publish anything by itself
+- Merging that release PR is what cuts the actual GitHub Release and rebuilds+attaches `templates.json`
 - The Portainer v2 template format requires a single JSON file, so the build step is necessary
+- Server provisioning lives in a separate repo: [homelab-ansible](https://github.com/st0o0/homelab-ansible)
 
 ## Guidelines
 

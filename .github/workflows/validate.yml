@@ -1,15 +1,11 @@
-name: Validate & Build Catalog
+name: Validate Catalog
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
     paths: ["templates/**", "stacks/**"]
   pull_request:
     paths: ["templates/**", "stacks/**"]
-
-permissions:
-  contents: write
 
 jobs:
   validate:
@@ -24,27 +20,3 @@ jobs:
       - name: Verify output is valid JSON
         shell: pwsh
         run: Get-Content templates.json -Raw | ConvertFrom-Json | Out-Null
-
-      - name: Deploy to release branch
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          cp templates.json /tmp/templates.json
-          cp -r stacks /tmp/stacks
-
-          git fetch origin release || true
-          if git rev-parse --verify origin/release >/dev/null 2>&1; then
-            git checkout release
-          else
-            git checkout --orphan release
-            git rm -rf .
-          fi
-
-          cp /tmp/templates.json templates.json
-          rm -rf stacks
-          cp -r /tmp/stacks stacks
-          git add templates.json stacks/
-          git diff --cached --quiet || git commit -m "build: update templates.json ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
-          git push origin release
