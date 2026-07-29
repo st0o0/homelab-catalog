@@ -1,0 +1,16 @@
+{
+  "type": 3,
+  "title": "Backrest",
+  "description": "Web UI for restic backup management with scheduling and restore support",
+  "logo": "https://raw.githubusercontent.com/garethgeorge/backrest/main/webui/assets/logo-white.svg",
+  "categories": ["Backup"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/backrest/compose.yml"
+  },
+  "env": [
+    { "name": "BACKREST_PORT", "label": "Web UI Port", "default": "9898" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
+  ],
+  "note": "Deploys 1 container: backrest. Web UI is bound to 127.0.0.1 only. Mounts /docker read-only for container volume backups."
+}

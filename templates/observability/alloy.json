@@ -1,0 +1,20 @@
+{
+  "type": 3,
+  "title": "Alloy",
+  "description": "Standalone Grafana Alloy collector for host metrics, docker logs, and system logs",
+  "logo": "https://raw.githubusercontent.com/grafana/alloy/main/docs/sources/assets/alloy_icon_orange.svg",
+  "categories": ["Observability", "Monitoring"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/alloy/compose.yml"
+  },
+  "env": [
+    { "name": "HOST_HOSTNAME", "label": "Host Label (unique per server)", "default": "" },
+    { "name": "REMOTE_WRITE_URL", "label": "VictoriaMetrics Remote Write URL", "default": "" },
+    { "name": "LOGS_PUSH_URL", "label": "VictoriaLogs Push URL (Loki protocol)", "default": "" },
+    { "name": "SCRAPE_INTERVAL", "label": "Metrics Scrape Interval", "default": "30s" },
+    { "name": "NUT_EXPORTER_TARGET", "label": "NUT Exporter Target (optional, host:port)", "default": "" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
+  ],
+  "note": "Deploys 1 container: alloy. Mounts /var/log, /proc, /sys, / (read-only) and the docker socket to collect host metrics, docker logs, and system logs. Ships data to a remote VictoriaMetrics/VictoriaLogs instance."
+}
