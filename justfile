@@ -70,8 +70,6 @@ lint-compose:
         base="$dir/compose.yml"
         if [ "$file" = "$base" ]; then
             args=(-f "$file")
-        elif [[ "$file" == *.bifrost.yml ]]; then
-            args=(--env-file stacks/bifrost/.env --env-file "$dir/.env" -f "$base" -f stacks/bifrost/compose.yml -f "$file")
         else
             args=(-f "$base" -f "$file")
         fi

@@ -20,5 +20,5 @@
     { "name": "REMOTE_WRITE_URL", "label": "VictoriaMetrics Remote Write URL", "default": "http://10.77.32.1:8428/api/v1/write" },
     { "name": "LOGS_PUSH_URL", "label": "VictoriaLogs Push URL", "default": "http://10.77.32.1:9428/insert/loki/api/v1/push" }
   ],
-  "note": "Deploys 2 containers: obs-agent-bifrost (WireGuard, NET_ADMIN) and obs-agent-alloy (network_mode: service:bifrost). Alloy mounts /var/log, /proc, /sys, / (read-only) and the docker socket. Set VM_BIND_IP/VLOGS_BIND_IP on the central Observability stack to its WireGuard IP. See stacks/observability-agent/README.md."
+  "note": "Deploys 2 containers: obs-agent-bifrost (WireGuard, NET_ADMIN) and obs-agent-alloy (network_mode: container:bifrost). Alloy mounts /var/log, /proc, /sys, / (read-only) and the docker socket. Set VM_BIND_IP/VLOGS_BIND_IP on the central Observability stack to its WireGuard IP. See stacks/observability-agent/README.md."
 }

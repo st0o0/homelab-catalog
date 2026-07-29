@@ -34,10 +34,10 @@ The UI is available at `http://localhost:9898`.
 
 ## Bifrost overlay
 
-To access the Backrest UI through a WireGuard tunnel, deploy alongside Bifrost's compose file and stack the overlay:
+To access the Backrest UI through a WireGuard tunnel, deploy Bifrost first (`stacks/bifrost`), then stack the overlay:
 
 ```bash
-docker compose -f compose.yml -f ../bifrost/compose.yml -f compose.bifrost.yml up -d
+docker compose -f compose.yml -f compose.bifrost.yml up -d
 ```
 
 ## Verify

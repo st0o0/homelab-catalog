@@ -1,6 +1,6 @@
 # Bifrost
 
-WireGuard tunnel sidecar. Other containers can route their traffic through the tunnel using `network_mode: service:bifrost`.
+WireGuard tunnel sidecar. Other containers can route their traffic through the tunnel using `network_mode: container:bifrost`.
 
 ```
  host                                        remote peer
@@ -11,13 +11,22 @@ WireGuard tunnel sidecar. Other containers can route their traffic through the t
 │  └──────────┘            │              └──────────────────┘
 │       ▲                  │
 │  network_mode:           │
-│  service:bifrost         │
+│  container:bifrost       │
 │  ┌──────────┐            │
 │  │ Alloy    │            │
 │  │ Backrest │            │
 │  └──────────┘            │
+│                          │
+│  ┌──────────┐            │
+│  │ CNAF     │ watches    │
+│  │          │ Bifrost    │
+│  └──────────┘            │
 └──────────────────────────┘
 ```
+
+Bifrost runs as a standalone stack. Other services reference it by container name — they do **not** need to be in the same Compose project.
+
+CNAF (ContainerNetwork AutoFix) monitors the Bifrost container and automatically recreates any dependent containers when Bifrost is restarted or updated, so they rejoin the new network namespace.
 
 ## Quick start
 
@@ -26,7 +35,15 @@ cp .env .env.local   # set private key and peer details
 docker compose up -d
 ```
 
+## Using Bifrost from another stack
+
+1. Deploy Bifrost first (`docker compose up -d` in this directory).
+2. In the other stack, add an override that sets `network_mode: container:bifrost` on the service. See `stacks/hawser/compose.override.bifrost.yaml` for an example.
+3. When Bifrost is updated, CNAF automatically recreates the dependent containers.
+
 ## Environment variables
+
+### Bifrost
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
@@ -46,6 +63,12 @@ docker compose up -d
 | `BIFROST_RECONNECT` | no | `on` | Auto-reconnect on failure |
 | `BIFROST_HEALTHCHECK` | no | `on` | Enable health checking |
 | `BIFROST_PROBE` | no | `off` | Enable probe mode |
+
+### CNAF
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `CNAF_RESTART_WAIT_TIME` | no | `15` | Seconds to wait after Bifrost restarts before recreating dependents |
 
 ## Generate a WireGuard keypair
 

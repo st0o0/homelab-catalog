@@ -23,5 +23,5 @@
     { "name": "BIFROST_PEER_PRESHARED_KEY", "label": "Peer Preshared Key (optional)", "default": "" },
     { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
   ],
-  "note": "Deploys 2 containers: hawser-bifrost (WireGuard, NET_ADMIN) and hawser-edge (network_mode: service:bifrost). All Dockhand traffic flows through the WireGuard tunnel — nothing exposed on the public network. Set DOCKHAND_SERVER_URL to the Dockhand instance's tunnel IP (e.g. http://10.77.32.1:9000)."
+  "note": "Deploys 2 containers: hawser-bifrost (WireGuard, NET_ADMIN) and hawser-edge (network_mode: container:bifrost). All Dockhand traffic flows through the WireGuard tunnel — nothing exposed on the public network. Set DOCKHAND_SERVER_URL to the Dockhand instance's tunnel IP (e.g. http://10.77.32.1:9000)."
 }
