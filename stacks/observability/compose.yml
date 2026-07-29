@@ -61,7 +61,7 @@ services:
       - --selfScrapeInterval=1m
     ports:
       # Loopback by default; set VM_BIND_IP to the WireGuard IP
-      # (e.g. 10.13.13.1) to accept remote observability agents.
+      # (e.g. 10.77.32.1) to accept remote observability agents.
       - "${VM_BIND_IP:-127.0.0.1}:8428:8428"
     volumes:
       - vm-data:/storage
@@ -84,7 +84,7 @@ services:
       - --retention.maxDiskSpaceUsageGB=${VL_MAX_DISK_GB:-0}
     ports:
       # Loopback by default; set VLOGS_BIND_IP to the WireGuard IP
-      # (e.g. 10.13.13.1) to accept remote observability agents.
+      # (e.g. 10.77.32.1) to accept remote observability agents.
       - "${VLOGS_BIND_IP:-127.0.0.1}:9428:9428"
     volumes:
       - vlogs-data:/storage

@@ -4,8 +4,8 @@
 // Same collection pipelines as the central stack, but ships
 // everything to the central VictoriaMetrics/VictoriaLogs through
 // the Bifrost WireGuard tunnel. Endpoints come from env:
-//   REMOTE_WRITE_URL  e.g. http://10.13.13.1:8428/api/v1/write
-//   LOGS_PUSH_URL     e.g. http://10.13.13.1:9428/insert/loki/api/v1/push
+//   REMOTE_WRITE_URL  e.g. http://10.77.32.1:8428/api/v1/write
+//   LOGS_PUSH_URL     e.g. http://10.77.32.1:9428/insert/loki/api/v1/push
 // (VictoriaLogs ingests the Loki push protocol.)
 // ============================================================
 

@@ -1,0 +1,43 @@
+{
+    "name": "Homelab Catalog — Linux",
+    "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "24"
+        },
+        "ghcr.io/devcontainers/features/powershell:1": {},
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+    },
+
+    "postCreateCommand": "sudo chmod +x scripts/install-dependencies.sh && bash scripts/install-dependencies.sh",
+
+    "postStartCommand": "bash scripts/update-dotfiles.sh",
+
+    "remoteEnv": {
+        "NO_AUTOSTART": "1"
+    },
+
+    "containerEnv": {
+        "LANG": "C.UTF-8",
+        "LC_ALL": "C.UTF-8",
+        "TZ": "${localEnv:TZ:Europe/Berlin}",
+        "DEVCONTAINER": "1"
+    },
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "timonwong.shellcheck",
+                "foxundermoon.shell-format"
+            ],
+            "settings": {
+                "files.associations": {
+                    "compose*.yml": "dockercompose"
+                },
+                "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font Mono', monospace"
+            }
+        }
+    }
+}

@@ -6,8 +6,8 @@ Collector stack for **remote servers**: Grafana Alloy gathers host metrics, dock
  remote server                                      central server
 ┌───────────────────────────────┐                 ┌──────────────────────────┐
 │ /proc /sys /var/log docker ──►│                 │                          │
-│  ┌───────┐   network_mode     │   WireGuard     │ 10.13.13.1:8428 ── VM    │
-│  │ Alloy │ ──────────────────►│═════════════════│ 10.13.13.1:9428 ── VLogs │
+│  ┌───────┐   network_mode     │   WireGuard     │ 10.77.32.1:8428 ── VM    │
+│  │ Alloy │ ──────────────────►│═════════════════│ 10.77.32.1:9428 ── VLogs │
 │  └───────┘  service:bifrost   │     tunnel      │                          │
 └───────────────────────────────┘                 └──────────────────────────┘
 ```
@@ -21,8 +21,8 @@ Alloy runs with `network_mode: service:bifrost`, so **all** telemetry leaves the
 The central observability stack binds VictoriaMetrics and VictoriaLogs to `127.0.0.1` by default. To accept agents, set these deploy variables to the central host's **WireGuard IP**:
 
 ```
-VM_BIND_IP=10.13.13.1
-VLOGS_BIND_IP=10.13.13.1
+VM_BIND_IP=10.77.32.1
+VLOGS_BIND_IP=10.77.32.1
 ```
 
 The WireGuard endpoint on the central side can be any WireGuard server (a host-level `wg0`, a Bifrost container with a fixed `BIFROST_LISTEN_PORT`, an existing VPN hub, ...). Each agent is one peer.
@@ -35,7 +35,7 @@ On any machine with wireguard-tools:
 wg genkey | tee agent.key | wg pubkey > agent.pub
 ```
 
-Add the agent's public key as a peer on the central WireGuard server with its tunnel IP (e.g. `10.13.13.11/32`), and note the central server's public key and endpoint.
+Add the agent's public key as a peer on the central WireGuard server with its tunnel IP (e.g. `10.77.32.11/32`), and note the central server's public key and endpoint.
 
 ### 3. Deploy the agent
 
@@ -45,7 +45,7 @@ Required variables:
 |---|---|---|
 | `HOST_HOSTNAME` | `nas-01` | `host` label on all metrics/logs — **must be unique per server** |
 | `BIFROST_PRIVATE_KEY` | contents of `agent.key` | Agent's WireGuard identity |
-| `BIFROST_ADDRESS` | `10.13.13.11/32` | Agent's tunnel IP |
+| `BIFROST_ADDRESS` | `10.77.32.11/32` | Agent's tunnel IP |
 | `BIFROST_PEER_PUBLIC_KEY` | central server's pubkey | |
 | `BIFROST_PEER_ENDPOINT` | `vpn.example.com:51820` | Central WireGuard endpoint |
 
@@ -53,9 +53,9 @@ Defaults that usually fit:
 
 | Variable | Default |
 |---|---|
-| `BIFROST_PEER_ALLOWED_IPS` | `10.13.13.0/24` (only tunnel traffic is routed — not a full VPN) |
-| `REMOTE_WRITE_URL` | `http://10.13.13.1:8428/api/v1/write` |
-| `LOGS_PUSH_URL` | `http://10.13.13.1:9428/insert/loki/api/v1/push` (VictoriaLogs speaks the Loki push protocol) |
+| `BIFROST_PEER_ALLOWED_IPS` | `10.77.32.0/24` (only tunnel traffic is routed — not a full VPN) |
+| `REMOTE_WRITE_URL` | `http://10.77.32.1:8428/api/v1/write` |
+| `LOGS_PUSH_URL` | `http://10.77.32.1:9428/insert/loki/api/v1/push` (VictoriaLogs speaks the Loki push protocol) |
 
 ### 4. Verify
 

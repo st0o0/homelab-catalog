@@ -10,7 +10,7 @@
   },
   "env": [
     { "name": "BIFROST_PRIVATE_KEY", "label": "WireGuard Private Key", "default": "" },
-    { "name": "BIFROST_ADDRESS", "label": "Tunnel Address (CIDR)", "default": "10.13.13.2/32" },
+    { "name": "BIFROST_ADDRESS", "label": "Tunnel Address (CIDR)", "default": "10.77.32.2/32" },
     { "name": "BIFROST_LISTEN_PORT", "label": "Listen Port", "default": "0" },
     { "name": "BIFROST_MTU", "label": "MTU", "default": "1420" },
     { "name": "BIFROST_PEER_PUBLIC_KEY", "label": "Peer Public Key", "default": "" },
