@@ -1,0 +1,6 @@
+services:
+  backrest:
+    network_mode: service:bifrost
+    depends_on:
+      bifrost:
+        condition: service_healthy
