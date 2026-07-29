@@ -1,27 +1,27 @@
 // ============================================================
-// Grafana Alloy — single collector for metrics and logs
+// Grafana Alloy — host collector + UPS monitor
 //
-// Metrics: host (node-exporter equivalent) -> VictoriaMetrics
-// Logs:    docker containers + host logs (auth, syslog,
-//          kernel) -> VictoriaLogs
+// Collects host metrics, docker container logs, and system logs,
+// then ships everything to a remote VictoriaMetrics/VictoriaLogs.
+// Also scrapes UPS metrics from a NUT exporter.
+//   REMOTE_WRITE_URL  e.g. CHANGE_ME
+//   LOGS_PUSH_URL     e.g. CHANGE_ME
 // ============================================================
 
 // ---------- Outputs ----------
 
-prometheus.remote_write "victoriametrics" {
+prometheus.remote_write "central" {
   endpoint {
-    url = "http://victoriametrics:8428/api/v1/write"
+    url = env("REMOTE_WRITE_URL")
   }
   external_labels = {
     host = env("HOST_HOSTNAME"),
   }
 }
 
-// VictoriaLogs ingests the Loki push protocol, so the standard
-// loki.* components work unchanged against it.
-loki.write "default" {
+loki.write "central" {
   endpoint {
-    url = "http://victorialogs:9428/insert/loki/api/v1/push"
+    url = env("LOGS_PUSH_URL")
   }
   external_labels = {
     host = env("HOST_HOSTNAME"),
@@ -42,8 +42,19 @@ prometheus.exporter.unix "host" {
 
 prometheus.scrape "host" {
   targets         = prometheus.exporter.unix.host.targets
-  forward_to      = [prometheus.remote_write.victoriametrics.receiver]
+  forward_to      = [prometheus.remote_write.central.receiver]
   scrape_interval = coalesce(env("SCRAPE_INTERVAL"), "30s")
+}
+
+// ---------- UPS metrics (NUT exporter) ----------
+
+prometheus.scrape "nut" {
+  targets = [{
+    __address__ = coalesce(env("NUT_EXPORTER_TARGET"), "nut-exporter:9199"),
+  }]
+  forward_to      = [prometheus.remote_write.central.receiver]
+  scrape_interval = coalesce(env("SCRAPE_INTERVAL"), "30s")
+  metrics_path    = "/nut"
 }
 
 // ---------- Docker container logs ----------
@@ -55,7 +66,6 @@ discovery.docker "containers" {
 discovery.relabel "containers" {
   targets = discovery.docker.containers.targets
 
-  // "/grafana" -> "grafana"
   rule {
     source_labels = ["__meta_docker_container_name"]
     regex         = "/(.*)"
@@ -68,12 +78,10 @@ loki.source.docker "containers" {
   targets       = discovery.docker.containers.targets
   relabel_rules = discovery.relabel.containers.rules
   labels        = { job = "docker" }
-  forward_to    = [loki.write.default.receiver]
+  forward_to    = [loki.write.central.receiver]
 }
 
 // ---------- Host system logs ----------
-// /var/log on the host is mounted read-only at /var/log/host.
-// Adjust paths for non-Debian hosts (e.g. /var/log/secure on RHEL).
 
 local.file_match "system" {
   path_targets = [
@@ -85,5 +93,5 @@ local.file_match "system" {
 
 loki.source.file "system" {
   targets    = local.file_match.system.targets
-  forward_to = [loki.write.default.receiver]
+  forward_to = [loki.write.central.receiver]
 }

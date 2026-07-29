@@ -1,5 +1,5 @@
 // ============================================================
-// Grafana Alloy — standalone agent
+// Grafana Alloy — host collector
 //
 // Collects host metrics, docker container logs, and system logs,
 // then ships everything to a remote VictoriaMetrics/VictoriaLogs.

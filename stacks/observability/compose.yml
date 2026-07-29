@@ -94,38 +94,7 @@ services:
       timeout: 5s
       retries: 5
 
-  alloy:
-    image: grafana/alloy:v1.17.1
-    container_name: alloy
-    restart: unless-stopped
-    logging: *default-logging
-    command:
-      - run
-      - /etc/alloy/config.alloy
-      - --storage.path=/var/lib/alloy/data
-      - --server.http.listen-addr=0.0.0.0:12345
-    environment:
-      - HOST_HOSTNAME=${HOST_HOSTNAME:-homelab}
-      - SCRAPE_INTERVAL=${SCRAPE_INTERVAL:-30s}
-    volumes:
-      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
-      - alloy-data:/var/lib/alloy/data
-      # Host log files (auth, syslog, kernel)
-      - /var/log:/var/log/host:ro
-      # Host metrics (node-exporter equivalent built into Alloy)
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-      # Docker container log discovery
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    depends_on:
-      victorialogs:
-        condition: service_healthy
-      victoriametrics:
-        condition: service_healthy
-
 volumes:
   grafana-data:
   vm-data:
   vlogs-data:
-  alloy-data:

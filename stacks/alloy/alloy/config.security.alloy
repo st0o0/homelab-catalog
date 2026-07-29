@@ -1,10 +1,12 @@
 // ============================================================
-// Grafana Alloy — UPS monitor + host collector
+// Grafana Alloy — host collector (security-hardened)
 //
-// Metrics: UPS (via NUT exporter) + host (node-exporter
-//          equivalent) -> central VictoriaMetrics
-// Logs:    docker containers + host logs (auth, syslog,
-//          kernel) -> central VictoriaLogs
+// Collects host metrics, docker container logs, and system logs,
+// then ships everything to a remote VictoriaMetrics/VictoriaLogs.
+// Includes extra log paths for security tooling: fail2ban, auditd,
+// rkhunter, ClamAV, and Lynis.
+//   REMOTE_WRITE_URL  e.g. CHANGE_ME
+//   LOGS_PUSH_URL     e.g. CHANGE_ME
 // ============================================================
 
 // ---------- Outputs ----------
@@ -25,17 +27,6 @@ loki.write "central" {
   external_labels = {
     host = env("HOST_HOSTNAME"),
   }
-}
-
-// ---------- UPS metrics (NUT exporter) ----------
-
-prometheus.scrape "nut" {
-  targets = [{
-    __address__ = coalesce(env("NUT_EXPORTER_TARGET"), "nut-exporter:9199"),
-  }]
-  forward_to      = [prometheus.remote_write.central.receiver]
-  scrape_interval = coalesce(env("SCRAPE_INTERVAL"), "30s")
-  metrics_path    = "/nut"
 }
 
 // ---------- Host metrics ----------
@@ -65,7 +56,6 @@ discovery.docker "containers" {
 discovery.relabel "containers" {
   targets = discovery.docker.containers.targets
 
-  // "/grafana" -> "grafana"
   rule {
     source_labels = ["__meta_docker_container_name"]
     regex         = "/(.*)"
@@ -81,15 +71,18 @@ loki.source.docker "containers" {
   forward_to    = [loki.write.central.receiver]
 }
 
-// ---------- Host system logs ----------
-// /var/log on the host is mounted read-only at /var/log/host.
-// Adjust paths for non-Debian hosts (e.g. /var/log/secure on RHEL).
+// ---------- Host system logs (security-hardened) ----------
 
 local.file_match "system" {
   path_targets = [
     {__path__ = "/var/log/host/syslog", job = "syslog"},
     {__path__ = "/var/log/host/auth.log", job = "auth"},
     {__path__ = "/var/log/host/kern.log", job = "kernel"},
+    {__path__ = "/var/log/host/fail2ban.log", job = "fail2ban"},
+    {__path__ = "/var/log/host/audit/audit.log", job = "auditd"},
+    {__path__ = "/var/log/host/rkhunter-cron.log", job = "rkhunter"},
+    {__path__ = "/var/log/host/clamav/scan.log", job = "clamav"},
+    {__path__ = "/var/log/host/lynis.log", job = "lynis"},
   ]
 }
 
