@@ -1,0 +1,6 @@
+services:
+  alloy:
+    network_mode: service:bifrost
+    depends_on:
+      bifrost:
+        condition: service_started
