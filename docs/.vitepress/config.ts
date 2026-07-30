@@ -1,6 +1,4 @@
-import { defineConfig } from 'vitepress'
-
-export default defineConfig({
+export default {
   title: 'Homelab Catalog',
   description: 'Dockhand template catalog for homelab services',
   base: '/homelab-catalog/',
@@ -9,4 +7,4 @@ export default defineConfig({
       { icon: 'github', link: 'https://github.com/st0o0/homelab-catalog' },
     ],
   },
-})
+}
