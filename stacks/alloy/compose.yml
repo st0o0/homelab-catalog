@@ -37,5 +37,28 @@ services:
         reservations:
           memory: 128M
 
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.51.0
+    container_name: ${CADVISOR_CONTAINER_NAME:-cadvisor}
+    restart: unless-stopped
+    logging: *default-logging
+    network_mode: service:alloy
+    command:
+      - --housekeeping_interval=30s
+      - --docker_only=true
+      - --disable_metrics=advtcp,cpu_topology,cpuset,hugetlb,memory_numa,process,referenced_memory,resctrl,sched,tcp,udp
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "0.10"
+          memory: 128M
+        reservations:
+          memory: 32M
+
 volumes:
   alloy-data:
