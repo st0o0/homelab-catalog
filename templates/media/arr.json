@@ -1,0 +1,26 @@
+{
+  "type": 3,
+  "title": "Arr Suite",
+  "description": "Sonarr, Radarr, Prowlarr, Seerr, Recyclarr, and companion tools for automated media management",
+  "categories": ["Media"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/arr/compose.yml"
+  },
+  "env": [
+    { "name": "SONARR_PORT", "label": "Sonarr Port", "default": "1089" },
+    { "name": "RADARR_PORT", "label": "Radarr Port", "default": "1078" },
+    { "name": "PROWLARR_PORT", "label": "Prowlarr Port", "default": "1096" },
+    { "name": "SEERR_PORT", "label": "Seerr Port", "default": "1055" },
+    { "name": "DASHBOARD_PORT", "label": "Arr Dashboard Port", "default": "1005" },
+    { "name": "RECYCLARR_PORT", "label": "Recyclarr Port", "default": "7879" },
+    { "name": "SONARR_API_KEY", "label": "Sonarr API Key (for Recyclarr)", "default": "" },
+    { "name": "RADARR_API_KEY", "label": "Radarr API Key (for Recyclarr)", "default": "" },
+    { "name": "TRACEARR_JWT_SECRET", "label": "Tracearr JWT Secret", "default": "" },
+    { "name": "TRACEARR_COOKIE_SECRET", "label": "Tracearr Cookie Secret", "default": "" },
+    { "name": "PUID", "label": "User ID", "default": "1000" },
+    { "name": "PGID", "label": "Group ID", "default": "1000" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
+  ],
+  "note": "Deploys 11 containers: sonarr, radarr, prowlarr, seerr, arr-dashboard, recyclarr, mediathekarr, flaresolverr, tracearr, tracearr-db (TimescaleDB), tracearr-redis. Requires the external media-net network and CIFS volumes for media storage."
+}

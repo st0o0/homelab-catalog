@@ -10,7 +10,7 @@
   },
   "env": [
     { "name": "BIFROST_PRIVATE_KEY", "label": "WireGuard Private Key", "default": "" },
-    { "name": "BIFROST_ADDRESS", "label": "Tunnel Address (CIDR)", "default": "10.13.13.2/32" },
+    { "name": "BIFROST_ADDRESS", "label": "Tunnel Address (CIDR)", "default": "10.77.32.2/32" },
     { "name": "BIFROST_LISTEN_PORT", "label": "Listen Port", "default": "0" },
     { "name": "BIFROST_MTU", "label": "MTU", "default": "1420" },
     { "name": "BIFROST_PEER_PUBLIC_KEY", "label": "Peer Public Key", "default": "" },
@@ -25,5 +25,5 @@
     { "name": "BIFROST_PROBE", "label": "Liveness Probe", "default": "off" },
     { "name": "EXPOSED_PORT", "label": "Exposed Port", "default": "8200" }
   ],
-  "note": "Deploys 1 container with NET_ADMIN capability. Uses the kernel WireGuard module (Linux 5.6+). If your host lacks the module, add /dev/net/tun as a device for the built-in userspace fallback. Services using the tunnel connect via network_mode: service:bifrost."
+  "note": "Deploys 2 containers: bifrost (WireGuard, NET_ADMIN) and eir (monitors Bifrost and auto-recreates dependent containers on restart). Uses the kernel WireGuard module (Linux 5.6+). If your host lacks the module, add /dev/net/tun as a device for the built-in userspace fallback. Services using the tunnel connect via network_mode: container:bifrost."
 }

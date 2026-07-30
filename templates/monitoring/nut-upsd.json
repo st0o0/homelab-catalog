@@ -1,0 +1,24 @@
+{
+  "type": 3,
+  "title": "NUT UPS Daemon",
+  "description": "Network UPS Tools daemon with Peanut web dashboard for UPS monitoring and management",
+  "categories": ["Monitoring"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/nut-upsd/compose.yml"
+  },
+  "env": [
+    { "name": "NUT_DRIVER", "label": "UPS Driver", "default": "usbhid-ups" },
+    { "name": "NUT_API_PASSWORD", "label": "NUT API Password", "default": "" },
+    { "name": "NUT_API_USER", "label": "NUT API User", "default": "upsmon" },
+    { "name": "NUT_NAME", "label": "UPS Name", "default": "ups" },
+    { "name": "NUT_PORT", "label": "UPS Port (driver)", "default": "auto" },
+    { "name": "NUT_POLLINTERVAL", "label": "Poll Interval (seconds)", "default": "15" },
+    { "name": "NUT_BIND", "label": "NUT Server Port", "default": "3493" },
+    { "name": "PEANUT_PORT", "label": "Peanut Web UI Port", "default": "8080" },
+    { "name": "PUID", "label": "User ID", "default": "1000" },
+    { "name": "PGID", "label": "Group ID", "default": "1000" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
+  ],
+  "note": "Deploys 2 containers: nut-upsd (mounts /dev/bus/usb for USB UPS access) and peanut (web dashboard). The UPS must be physically connected via USB to the host running this stack."
+}

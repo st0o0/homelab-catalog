@@ -1,0 +1,24 @@
+{
+  "type": 3,
+  "title": "Home Assistant",
+  "description": "Home automation hub with Zigbee2MQTT, Mosquitto, Matter.js, and Njord weather service",
+  "logo": "https://raw.githubusercontent.com/home-assistant/assets/master/logo/logo-small.png",
+  "categories": ["Home Automation"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/homeassistant/compose.yml"
+  },
+  "env": [
+    { "name": "HA_PORT", "label": "Home Assistant Port", "default": "8123" },
+    { "name": "HA_CONFIG_PATH", "label": "Home Assistant Config Path", "default": "./data" },
+    { "name": "HA_SERIAL_DEVICE", "label": "Serial Device (Zigbee coordinator)", "default": "/dev/serial1" },
+    { "name": "MQTT_PORT", "label": "Mosquitto MQTT Port", "default": "8124" },
+    { "name": "Z2M_PORT", "label": "Zigbee2MQTT Port", "default": "8125" },
+    { "name": "Z2M_DATA_PATH", "label": "Zigbee2MQTT Data Path", "default": "./zigbee2mqtt/data" },
+    { "name": "NJORD_PORT", "label": "Njord Weather Service Port", "default": "9090" },
+    { "name": "VLAN_PARENT", "label": "VLAN Parent Interface", "default": "vlan88" },
+    { "name": "VLAN_SUBNET", "label": "VLAN Subnet", "default": "10.44.88.0/24" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
+  ],
+  "note": "Deploys 5 containers: homeassistant (privileged, macvlan on VLAN101), mosquitto, zigbee2mqtt, matterjs-server (host network), njord (host network). Requires a serial Zigbee coordinator and macvlan network for IoT VLAN access."
+}

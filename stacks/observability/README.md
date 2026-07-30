@@ -130,7 +130,7 @@ Grafana creates its schema on first start. Two caveats:
 
 ## Monitoring other servers
 
-Deploy the **Observability Agent** stack (`stacks/observability-agent/`) on each additional server. It runs the same Alloy pipelines and pushes metrics/logs to this stack through a Bifrost WireGuard tunnel. On this host, set `VM_BIND_IP` and `VLOGS_BIND_IP` to the WireGuard IP (e.g. `10.13.13.1`) so the agents can reach VictoriaMetrics and VictoriaLogs. Every series carries a `host` label, so dashboards work fleet-wide. See [observability-agent/README.md](../observability-agent/README.md).
+Deploy the **Observability Agent** stack (`stacks/observability-agent/`) on each additional server. It runs the same Alloy pipelines and pushes metrics/logs to this stack through a Bifrost WireGuard tunnel. On this host, set `VM_BIND_IP` and `VLOGS_BIND_IP` to the WireGuard IP (e.g. `10.77.32.1`) so the agents can reach VictoriaMetrics and VictoriaLogs. Every series carries a `host` label, so dashboards work fleet-wide. See [observability-agent/README.md](../observability-agent/README.md).
 
 ## Notes
 

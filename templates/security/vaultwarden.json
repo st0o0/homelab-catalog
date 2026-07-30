@@ -1,0 +1,23 @@
+{
+  "type": 3,
+  "title": "Vaultwarden",
+  "description": "Lightweight Bitwarden-compatible password manager server",
+  "logo": "https://raw.githubusercontent.com/dani-garcia/vaultwarden/main/resources/vaultwarden-icon.svg",
+  "categories": ["Security"],
+  "repository": {
+    "url": "https://github.com/st0o0/homelab-catalog",
+    "stackfile": "stacks/vaultwarden/compose.yml"
+  },
+  "env": [
+    { "name": "VAULTWARDEN_PORT", "label": "Web UI Port", "default": "3002" },
+    { "name": "DOMAIN", "label": "Domain URL (for email links and WebSocket)", "default": "" },
+    { "name": "DATABASE_URL", "label": "Database URL (optional, default: SQLite)", "default": "" },
+    { "name": "VAULTWARDEN_DATA_PATH", "label": "Data Path", "default": "./data" },
+    { "name": "SIGNUPS_ALLOWED", "label": "Allow Signups", "default": "false" },
+    { "name": "DISABLE_ADMIN_TOKEN", "label": "Disable Admin Panel", "default": "true" },
+    { "name": "PUID", "label": "User ID", "default": "1000" },
+    { "name": "PGID", "label": "Group ID", "default": "1000" },
+    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
+  ],
+  "note": "Deploys 1 container: vaultwarden. Signups and admin panel are disabled by default. Supports SQLite (default) or PostgreSQL via DATABASE_URL. Use any Bitwarden client to connect."
+}

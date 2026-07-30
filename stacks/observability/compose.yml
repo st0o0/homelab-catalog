@@ -61,7 +61,7 @@ services:
       - --selfScrapeInterval=1m
     ports:
       # Loopback by default; set VM_BIND_IP to the WireGuard IP
-      # (e.g. 10.13.13.1) to accept remote observability agents.
+      # (e.g. 10.77.32.1) to accept remote observability agents.
       - "${VM_BIND_IP:-127.0.0.1}:8428:8428"
     volumes:
       - vm-data:/storage
@@ -84,7 +84,7 @@ services:
       - --retention.maxDiskSpaceUsageGB=${VL_MAX_DISK_GB:-0}
     ports:
       # Loopback by default; set VLOGS_BIND_IP to the WireGuard IP
-      # (e.g. 10.13.13.1) to accept remote observability agents.
+      # (e.g. 10.77.32.1) to accept remote observability agents.
       - "${VLOGS_BIND_IP:-127.0.0.1}:9428:9428"
     volumes:
       - vlogs-data:/storage
@@ -94,38 +94,7 @@ services:
       timeout: 5s
       retries: 5
 
-  alloy:
-    image: grafana/alloy:v1.17.1
-    container_name: alloy
-    restart: unless-stopped
-    logging: *default-logging
-    command:
-      - run
-      - /etc/alloy/config.alloy
-      - --storage.path=/var/lib/alloy/data
-      - --server.http.listen-addr=0.0.0.0:12345
-    environment:
-      - HOST_HOSTNAME=${HOST_HOSTNAME:-homelab}
-      - SCRAPE_INTERVAL=${SCRAPE_INTERVAL:-30s}
-    volumes:
-      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
-      - alloy-data:/var/lib/alloy/data
-      # Host log files (auth, syslog, kernel)
-      - /var/log:/var/log/host:ro
-      # Host metrics (node-exporter equivalent built into Alloy)
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-      # Docker container log discovery
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    depends_on:
-      victorialogs:
-        condition: service_healthy
-      victoriametrics:
-        condition: service_healthy
-
 volumes:
   grafana-data:
   vm-data:
   vlogs-data:
-  alloy-data:
