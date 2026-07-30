@@ -1,5 +1,8 @@
-# Build output — never on main, only committed to the stable branch by CI
+# Build output
 templates.json
+docs/public/templates.json
+docs/.vitepress/cache/
+docs/.vitepress/dist/
 
 .vscode/
 Thumbs.db
