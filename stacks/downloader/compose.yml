@@ -6,7 +6,7 @@ x-logging: &default-logging
 
 services:
   gluetun:
-    image: ghcr.io/qdm12/gluetun:v3.41.1
+    image: ghcr.io/qdm12/gluetun:v3.41.2
     container_name: gluetun
     restart: unless-stopped
     logging: *default-logging
