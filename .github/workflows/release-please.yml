@@ -95,8 +95,10 @@ jobs:
         with:
           node-version: 22
 
+      - run: npm ci
+
       - name: Build VitePress site
-        run: npx vitepress build docs
+        run: npm run docs:build
 
       - uses: actions/upload-pages-artifact@v3
         with:
