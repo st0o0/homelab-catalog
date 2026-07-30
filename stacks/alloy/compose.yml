@@ -12,7 +12,7 @@ services:
     logging: *default-logging
     command:
       - run
-      - ${ALLOY_CONFIG:-/etc/alloy/config.alloy}
+      - /etc/alloy/
       - --storage.path=/var/lib/alloy/data
       - --server.http.listen-addr=0.0.0.0:12345
     environment:
