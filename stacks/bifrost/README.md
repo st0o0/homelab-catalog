@@ -18,7 +18,7 @@ WireGuard tunnel sidecar. Other containers can route their traffic through the t
 │  └──────────┘            │
 │                          │
 │  ┌──────────┐            │
-│  │ CNAF     │ watches    │
+│  │ Eir      │ watches    │
 │  │          │ Bifrost    │
 │  └──────────┘            │
 └──────────────────────────┘
@@ -26,7 +26,7 @@ WireGuard tunnel sidecar. Other containers can route their traffic through the t
 
 Bifrost runs as a standalone stack. Other services reference it by container name — they do **not** need to be in the same Compose project.
 
-CNAF (ContainerNetwork AutoFix) monitors the Bifrost container and automatically recreates any dependent containers when Bifrost is restarted or updated, so they rejoin the new network namespace.
+Eir monitors the Bifrost container and automatically recreates any dependent containers when Bifrost is restarted or updated, so they rejoin the new network namespace.
 
 ## Quick start
 
@@ -39,7 +39,7 @@ docker compose up -d
 
 1. Deploy Bifrost first (`docker compose up -d` in this directory).
 2. In the other stack, add an override that sets `network_mode: container:bifrost` on the service. See `stacks/hawser/compose.override.bifrost.yaml` for an example.
-3. When Bifrost is updated, CNAF automatically recreates the dependent containers.
+3. When Bifrost is updated, Eir automatically recreates the dependent containers.
 
 ## Environment variables
 
@@ -64,11 +64,15 @@ docker compose up -d
 | `BIFROST_HEALTHCHECK` | no | `on` | Enable health checking |
 | `BIFROST_PROBE` | no | `off` | Enable probe mode |
 
-### CNAF
+### Eir
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
-| `CNAF_RESTART_WAIT_TIME` | no | `15` | Seconds to wait after Bifrost restarts before recreating dependents |
+| `EIR_STABILIZE_WAIT` | no | `15s` | Delay before healing dependents |
+| `EIR_MAX_RETRIES` | no | `3` | Maximum retry attempts |
+| `EIR_RETRY_BACKOFF` | no | `5s` | Initial exponential backoff interval |
+| `EIR_LOG_LEVEL` | no | `info` | Log verbosity (`debug`, `info`, `warn`, `error`) |
+| `EIR_LOG_FORMAT` | no | `text` | Log output format (`text` or `json`) |
 
 ## Generate a WireGuard keypair
 

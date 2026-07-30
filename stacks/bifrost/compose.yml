@@ -39,19 +39,23 @@ services:
         reservations:
           memory: 128M
 
-  cnaf:
-    image: buxxdev/containernetwork-autofix
-    container_name: bifrost-cnaf
+  eir:
+    image: ghcr.io/st0o0/eir:latest
+    container_name: bifrost-eir
     restart: unless-stopped
     logging: *default-logging
     depends_on:
       bifrost:
         condition: service_started
     environment:
-      - MASTER_CONTAINER=bifrost
-      - RESTART_WAIT_TIME=${CNAF_RESTART_WAIT_TIME:-15}
+      - EIR_MASTERS=bifrost
+      - EIR_STABILIZE_WAIT=${EIR_STABILIZE_WAIT:-15s}
+      - EIR_MAX_RETRIES=${EIR_MAX_RETRIES:-3}
+      - EIR_RETRY_BACKOFF=${EIR_RETRY_BACKOFF:-5s}
+      - EIR_LOG_LEVEL=${EIR_LOG_LEVEL:-info}
+      - EIR_LOG_FORMAT=${EIR_LOG_FORMAT:-text}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     deploy:
       resources:
         limits:
