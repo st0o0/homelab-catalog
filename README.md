@@ -21,7 +21,7 @@ send an `Access-Control-Allow-Origin` header — that fetch fails with a CORS er
 send that header, so `templates.json` is committed to the `stable` branch (fast-forwarded
 to the release tag on every release) and served from there instead.
 
-The `.../releases/latest/download/templates.json` and `.../releases/download/catalog-vX.Y.Z/templates.json`
+The `.../releases/latest/download/templates.json` and `.../releases/download/vX.Y.Z/templates.json`
 release-asset URLs still exist for pinned downloads via `curl`/scripts, just not for
 browser-based sources.
 
@@ -133,7 +133,7 @@ asset.
 ```
 main branch                    release-please PR              GitHub Release          stable branch
 ┌───────────────────────┐      ┌──────────────────────┐      ┌────────────────────┐  ┌────────────────────┐
-│ templates/             │ CI   │ chore(catalog): rel.  │ merge │ tag catalog-vX.Y.Z │  │ (fast-forwarded to │
+│ templates/             │ CI   │ chore(catalog): rel.  │ merge │ tag vX.Y.Z          │  │ (fast-forwarded to │
 │   media/jellyfin.json  │ ───► │ CHANGELOG.md          │ ───► │ templates.json      │─►│  the tag) +         │
 │   ...                  │ open │ (version bump)        │       │ (release asset)    │  │ templates.json      │
 │ scripts/build.ps1      │  PR  │                       │      └────────────────────┘  │ commit              │
