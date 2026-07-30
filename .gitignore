@@ -1,4 +1,4 @@
-# Build output — lives only on the release branch
+# Build output — never on main, only committed to the stable branch by CI
 templates.json
 
 .vscode/

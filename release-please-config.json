@@ -5,8 +5,7 @@
     ".": {
       "component": "catalog",
       "changelog-path": "CHANGELOG.md",
-      "include-component-in-tag": true,
-      "tag-separator": "-"
+      "include-component-in-tag": false
     }
   }
 }
