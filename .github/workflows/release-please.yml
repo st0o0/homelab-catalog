@@ -51,6 +51,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ needs.release-please.outputs.tag_name }}" templates.json --clobber
 
+  # Fast-forwards `stable` to the release tag and commits templates.json on
+  # top of it. GitHub Release assets don't send Access-Control-Allow-Origin,
+  # so a browser-based fetch (e.g. Dockhand adding this repo as a template
+  # source) fails with a CORS error. raw.githubusercontent.com does send
+  # that header, so serving templates.json from the stable branch is what
+  # makes the browser fetch work.
   promote-stable:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
@@ -63,8 +69,14 @@ jobs:
           ref: ${{ needs.release-please.outputs.tag_name }}
           fetch-depth: 0
 
-      - name: Fast-forward stable to release tag
+      - name: Build catalog
+        shell: pwsh
+        run: ./scripts/build.ps1
+
+      - name: Commit templates.json and fast-forward stable
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f templates.json
+          git commit -m "chore(catalog): publish templates.json for ${{ needs.release-please.outputs.tag_name }}"
           git push origin HEAD:refs/heads/stable --force

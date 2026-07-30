@@ -13,9 +13,17 @@ In the Dockhand UI go to **Templates → Sources** and add a new source:
 | Field | Value |
 |---|---|
 | Name | `Homelab` |
-| URL | `https://github.com/st0o0/homelab-catalog/releases/latest/download/templates.json` |
+| URL | `https://raw.githubusercontent.com/st0o0/homelab-catalog/stable/templates.json` |
 
-That URL always resolves to the newest release's asset. To pin Dockhand to a specific known-good version instead, use `.../releases/download/catalog-vX.Y.Z/templates.json`.
+Dockhand fetches template sources from the browser, and GitHub Release assets don't
+send an `Access-Control-Allow-Origin` header — that fetch fails with a CORS error
+(`NetworkError when attempting to fetch resource`). `raw.githubusercontent.com` does
+send that header, so `templates.json` is committed to the `stable` branch (fast-forwarded
+to the release tag on every release) and served from there instead.
+
+The `.../releases/latest/download/templates.json` and `.../releases/download/catalog-vX.Y.Z/templates.json`
+release-asset URLs still exist for pinned downloads via `curl`/scripts, just not for
+browser-based sources.
 
 Dockhand fetches and caches the catalog for one hour. After adding the source, switch to the **Templates** tab to browse and deploy.
 
@@ -123,21 +131,23 @@ asset.
 ## How It Works
 
 ```
-main branch                    release-please PR              GitHub Release
-┌───────────────────────┐      ┌──────────────────────┐      ┌────────────────────┐
-│ templates/             │ CI   │ chore(catalog): rel.  │ merge │ tag catalog-vX.Y.Z │
-│   media/jellyfin.json  │ ───► │ CHANGELOG.md          │ ───► │ templates.json      │
-│   ...                  │ open │ (version bump)        │       │ (release asset)    │
-│ scripts/build.ps1      │  PR  │                       │      └────────────────────┘
-└───────────────────────┘      └──────────────────────┘               │
-                                                                Dockhand fetches
-                                                                /releases/latest/download
+main branch                    release-please PR              GitHub Release          stable branch
+┌───────────────────────┐      ┌──────────────────────┐      ┌────────────────────┐  ┌────────────────────┐
+│ templates/             │ CI   │ chore(catalog): rel.  │ merge │ tag catalog-vX.Y.Z │  │ (fast-forwarded to │
+│   media/jellyfin.json  │ ───► │ CHANGELOG.md          │ ───► │ templates.json      │─►│  the tag) +         │
+│   ...                  │ open │ (version bump)        │       │ (release asset)    │  │ templates.json      │
+│ scripts/build.ps1      │  PR  │                       │      └────────────────────┘  │ commit              │
+└───────────────────────┘      └──────────────────────┘                                └────────────────────┘
+                                                                                                 │
+                                                                                          Dockhand fetches
+                                                                                          raw.githubusercontent.com/…/stable/templates.json
 ```
 
 - **`main`** holds the source files: individual templates, the build script, CI config, and docs — never the merged `templates.json`
 - Every push to `main` updates release-please's standing "catalog" release PR (CHANGELOG + version bump), it doesn't publish anything by itself
-- Merging that release PR is what cuts the actual GitHub Release and rebuilds+attaches `templates.json`
+- Merging that release PR cuts the actual GitHub Release, rebuilds `templates.json`, attaches it as a release asset, and fast-forwards `stable` to the tag with `templates.json` committed on top
 - The Portainer v2 template format requires a single JSON file, so the build step is necessary
+- `stable` exists purely to serve `templates.json` with CORS headers via `raw.githubusercontent.com` — Dockhand (and any other browser-based fetch) needs that, GitHub Release assets don't provide it
 - Server provisioning lives in a separate repo: [homelab-ansible](https://github.com/st0o0/homelab-ansible)
 
 ## Guidelines
