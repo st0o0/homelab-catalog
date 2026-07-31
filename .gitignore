@@ -13,3 +13,5 @@ node_modules/
 # Secrets — only encrypted .sops.yaml files are committed
 komodo/secrets.yaml
 *.secrets.toml
+
+.devcontainer/linux/devcontainer-lock.json

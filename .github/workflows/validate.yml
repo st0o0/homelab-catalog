@@ -1,11 +1,11 @@
-name: Validate Catalog
+name: Validate Stacks
 
 on:
   push:
     branches: [main]
-    paths: ["templates/**", "stacks/**"]
+    paths: ["stacks/**"]
   pull_request:
-    paths: ["templates/**", "stacks/**"]
+    paths: ["stacks/**"]
 
 jobs:
   validate:
@@ -13,10 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate and build catalog
-        shell: pwsh
-        run: ./scripts/build.ps1
+      - uses: extractions/setup-just@v2
 
-      - name: Verify output is valid JSON
-        shell: pwsh
-        run: Get-Content templates.json -Raw | ConvertFrom-Json | Out-Null
+      - name: Validate compose files
+        run: just lint-compose
