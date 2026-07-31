@@ -38,7 +38,7 @@ docker compose up -d
 ## Using Bifrost from another stack
 
 1. Deploy Bifrost first (`docker compose up -d` in this directory).
-2. In the other stack, add an override that sets `network_mode: container:bifrost` on the service. See `stacks/hawser/compose.override.bifrost.yaml` for an example.
+2. In the other stack, add an override that sets `network_mode: container:bifrost` on the service. See `stacks/alloy/compose.override.bifrost.yaml` for an example.
 3. When Bifrost is updated, Eir automatically recreates the dependent containers.
 
 ## Environment variables

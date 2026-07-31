@@ -1,4 +1,0 @@
-services:
-  hawser:
-    ports:
-      - "${HAWSER_PORT:-2376}:2376/tcp"
