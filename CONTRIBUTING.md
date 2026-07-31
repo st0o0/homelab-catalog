@@ -3,17 +3,17 @@
 ## Commit convention
 
 This repo uses [release-please](https://github.com/googleapis/release-please)
-to generate CHANGELOGs and version tags for the catalog. It parses commit
-messages on `main` by walking the git log, so with this repo's
-rebase/merge workflow **every individual commit** (not just a PR title)
-must follow [Conventional Commits](https://www.conventionalcommits.org/):
+to generate CHANGELOGs and version tags. It parses commit messages on `main`
+by walking the git log, so with this repo's rebase/merge workflow **every
+individual commit** (not just a PR title) must follow
+[Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
 <type>(<optional scope>): <description>
 
-feat(catalog): add jellyfin template
-fix(catalog): correct jellyfin volume bind path
-docs: clarify template field reference
+feat(arr): add tracearr service
+fix(pihole): correct nebula-sync env var name
+docs: clarify secrets rotation workflow
 ```
 
 Common types: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `build`,
@@ -24,139 +24,74 @@ these up (`git rebase -i`) before merging.
 ## Project Structure
 
 ```
-templates/                        One JSON file per service, grouped by category
-├── monitoring/
-│   ├── hawser.json
-│   ├── hawser-edge.json
-│   └── hawser-edge-bifrost.json
-├── networking/
-│   └── bifrost.json
-├── observability/
-│   ├── observability.json
-│   ├── observability-agent.json
-│   └── ups-monitor.json
-└── photos/
-    └── immich.json
-stacks/                           Docker Compose files referenced by type-3 templates
-scripts/
-└── build.ps1                     Validates all templates and merges into templates.json
+stacks/                           Docker Compose stacks, one directory per service
+├── <service>/
+│   ├── compose.yml               Compose file
+│   ├── .env.example              All configurable values, documented
+│   └── README.md                 Stack-specific deployment notes (optional)
+komodo/
+├── resources/                    ResourceSync TOML: servers, stacks, variables
+│   ├── servers.toml
+│   ├── stacks.toml
+│   └── variables.toml
+├── secrets.sops.yaml             SOPS-encrypted shared secrets
+├── hosts/<host>/secrets.sops.yaml  SOPS-encrypted per-host secrets
+└── decrypt.sh                    Merges secrets into Komodo Core's config
 .github/workflows/
-├── validate.yml                  Validates templates on every push/PR (no publishing)
-├── release-please.yml            Manages release PRs + CHANGELOGs; on release,
-│                                  rebuilds templates.json and attaches it as a release asset
+├── validate.yml                  Validates every stacks/*/compose.yml on push/PR
+├── release-please.yml            Manages release PRs + CHANGELOGs
 └── commitlint.yml                Enforces Conventional Commits on every PR commit
 ```
 
-`templates.json` is never committed to the repo — it's generated fresh by
-CI and published only as a GitHub Release asset (see the root
-[README.md](README.md#how-it-works)) for the `catalog` component's
-releases.
+## Adding a Stack
 
-## Adding a Template
+### 1. Create the directory
 
-### 1. Pick the right category
-
-Choose an existing subdirectory under `templates/`. If no category fits, create a new one — the build script picks up any subdirectory automatically.
-
-### 2. Create the JSON file
-
-File name should be lowercase kebab-case matching the service name (e.g. `uptime-kuma.json`, `home-assistant.json`).
-
-**Single container** (`type: 1`):
-
-```json
-{
-  "type": 1,
-  "title": "My Service",
-  "description": "One-line description of what it does",
-  "image": "registry/image:tag",
-  "categories": ["Category"],
-  "ports": ["8080:8080/tcp"],
-  "volumes": [
-    { "bind": "/data/my-service/config", "container": "/config" },
-    { "bind": "/data/my-service/data", "container": "/data" }
-  ],
-  "env": [
-    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" },
-    { "name": "PUID", "label": "User ID", "default": "1000" },
-    { "name": "PGID", "label": "Group ID", "default": "1000" }
-  ],
-  "restart_policy": "unless-stopped"
-}
+```
+stacks/<service>/
+├── compose.yml
+└── .env.example
 ```
 
-**Compose stack** (`type: 3`) — references a `docker-compose.yml` in a Git repository:
+Use lowercase kebab-case for `<service>`, matching the container/project
+name (e.g. `uptime-kuma`, `home-assistant`).
 
-```json
-{
-  "type": 3,
-  "title": "My Stack",
-  "description": "Multi-container application with database and cache",
-  "categories": ["Productivity"],
-  "repository": {
-    "url": "https://github.com/user/repo",
-    "stackfile": "stacks/my-stack/docker-compose.yml"
-  }
-}
-```
+### 2. Write the compose file
+
+- Guard required env vars with `${VAR:?VAR is required}` so `docker compose
+  config` fails loudly instead of deploying with an empty value
+- Give every optional var a sensible default: `${VAR:-default}`
+- Document every var — required and optional — in `.env.example`
 
 ### 3. Validate locally
 
-```powershell
-# Validate and build templates.json locally
-./scripts/build.ps1
-
-# Validate only — no output file written
-./scripts/build.ps1 -ValidateOnly
+```bash
+docker compose -f stacks/<service>/compose.yml --env-file stacks/<service>/.env.example config --quiet
 ```
 
-The build script checks:
-- Valid JSON syntax
-- Required fields present (`type`, `title`, `image` for type 1)
-- Valid type value (1 or 3)
-- Type 3 templates have `repository.url` and `repository.stackfile`
-- All `env` entries have a `name`
-- All `volumes` entries have `bind` and `container`
-- No duplicate `title` values across the catalog
+CI runs the same check against every `stacks/*/compose.yml` on push/PR
+(`validate.yml`).
 
-### 4. Commit and push
+### 4. Wire it into ResourceSync
 
-Only commit your template file under `templates/`, with a Conventional
-Commits message (see above) so release-please picks it up:
+Add a `[[stack]]` entry to `komodo/resources/stacks.toml` assigning the
+new stack to a server declared in `komodo/resources/servers.toml`. Secret
+values go through `[[SECRET_NAME]]`, added via `just secrets` (see
+[komodo/README.md](komodo/README.md)) — never commit a real secret value
+into `stacks.toml` directly.
+
+### 5. Commit and push
 
 ```bash
-git add templates/media/my-service.json
-git commit -m "feat(catalog): add my-service template"
+git add stacks/<service>/ komodo/resources/stacks.toml
+git commit -m "feat(<service>): add <service> stack"
 git push
 ```
-
-On push to `main`, CI validates all templates and release-please updates
-its standing "catalog" release PR with a CHANGELOG entry. Merging that PR
-cuts a GitHub Release and publishes the rebuilt `templates.json` as its
-asset — Dockhand picks up the change within one hour (its cache interval).
-
-## Field Reference
-
-| Field | Required | Type | Notes |
-|---|---|---|---|
-| `type` | yes | `1` or `3` | `1` = single container, `3` = compose stack |
-| `title` | yes | string | Display name shown in Dockhand |
-| `description` | no | string | Short description on the template card |
-| `image` | yes (type 1) | string | Docker image reference (e.g. `jellyfin/jellyfin:10.11`) |
-| `logo` | no | string | URL to an icon/logo image for the card |
-| `categories` | no | string[] | Used for filtering in the Dockhand UI |
-| `ports` | no | string[] | Format: `"host:container/proto"` (e.g. `"8080:8080/tcp"`) |
-| `volumes` | no | object[] | `{ "bind": "/host/path", "container": "/container/path" }` |
-| `env` | no | object[] | `{ "name": "VAR_NAME", "label": "Display Label", "default": "value" }` |
-| `restart_policy` | no | string | Defaults to `unless-stopped` if omitted |
-| `note` | no | string | Deployment caveats — not shown in Dockhand, for documentation only |
-| `repository` | yes (type 3) | object | `{ "url": "https://...", "stackfile": "path/to/docker-compose.yml" }` |
 
 ## Guidelines
 
 - **Pin image tags** where possible (`jellyfin:10.11` not `jellyfin:latest`) for reproducibility
-- **Always include `TZ`** as an env var so timezone is configurable
+- **Always support `TZ`** as an env var so timezone is configurable
 - **Use `/data/<service-name>`** as the default host bind path convention
-- **Keep descriptions concise** — one sentence, no period
-- **Add a `note` field** for important deployment caveats (VPN routing, host network mode, USB passthrough, required companion services)
-- **One file per service** — even if services are related (e.g. Immich Server and Immich ML are separate files)
+- **Keep `.env.example` complete** — every var the compose file reads should appear there, required vars first
+- **One stack per service** — even if services are related (e.g. Immich Server and its Postgres are separate stacks: `immich`, `immich-postgres`)

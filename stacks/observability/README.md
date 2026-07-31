@@ -39,7 +39,7 @@ Only Grafana is published to the host. VictoriaMetrics and VictoriaLogs are boun
 
 ## Quick start
 
-1. Deploy the stack (via Dockhand or `docker compose up -d`). The only **required** variable is `GRAFANA_ADMIN_PASSWORD`. Set `HOST_HOSTNAME` to the machine's name — it becomes the `host` label on every metric and log line, so a second host deployed later stays distinguishable. (Grafana installs the `victoriametrics-logs-datasource` plugin on first start, so it needs internet access once.)
+1. Deploy the stack (via Komodo or `docker compose up -d`). The only **required** variable is `GRAFANA_ADMIN_PASSWORD`. Set `HOST_HOSTNAME` to the machine's name — it becomes the `host` label on every metric and log line, so a second host deployed later stays distinguishable. (Grafana installs the `victoriametrics-logs-datasource` plugin on first start, so it needs internet access once.)
 2. Open `http://<host>:3000`, log in with `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD`.
 3. Datasources **VictoriaMetrics** (default) and **VictoriaLogs** are already provisioned — nothing to configure.
 4. Verify data is flowing: **Explore → VictoriaMetrics** and run `node_load1`, then **Explore → VictoriaLogs** and run `{job="docker"}`.

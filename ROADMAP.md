@@ -2,11 +2,37 @@
 
 What needs to change in this repo so all stacks can be deployed and managed via Komodo across multiple hosts.
 
+## Work order
+
+Sections are largely independent; this order resolves dependencies so later
+sections can reference earlier decisions (secrets, network ownership, file
+paths) instead of guessing at them.
+
+1. **§7 Secrets** — foundation; already started, finish first so `[[SECRET]]`
+   references are stable for everything below.
+2. **§2 + §3 CIFS volumes & `media-net`** (arr, downloader, media) — fixes
+   active `compose up` blockers, independent of the rest.
+3. **§6 Commit missing config directories** — independent, quick, prevents
+   deploy failures across several stacks.
+4. **§4 Alloy `extras/` → `modules/` refactor** — independent, Alloy only.
+5. **§5 Compose override pattern** (alloy) — builds on the new Alloy
+   module layout from §4.
+6. **§1 Finish Komodo stacks** — verify `stacks/komodo` and
+   `stacks/komodo-periphery` are complete.
+7. **§8 ResourceSync** (`servers.toml`, `variables.toml`, `stacks.toml`) —
+   the centerpiece; comes last because it references every decision made
+   above.
+
+Dockhand and its only dependent (`stacks/hawser/`, which existed solely to
+report to a Dockhand server) have already been removed (see the
+`komodo-gitops-charter` OpenSpec change). This repo now has a single
+deployment mechanism: Komodo.
+
 ## 1 — Add Komodo stacks
 
-- [ ] `stacks/komodo/` — Core + MongoDB + local Periphery agent
-- [ ] `stacks/komodo-periphery/` — standalone Periphery agent for remote hosts
-- [ ] `.env.example` for both with all configurable values
+- [x] `stacks/komodo/` — Core + MongoDB + local Periphery agent
+- [x] `stacks/komodo-periphery/` — standalone Periphery agent for remote hosts
+- [x] `.env.example` for both with all configurable values
 
 ## 2 — Fix CIFS volumes (arr, downloader, media)
 
@@ -33,9 +59,9 @@ The current `cp extras/*.alloy alloy/` workflow is a manual step that doesn't wo
 - [ ] Remove `extras/` directory and copy instructions from `.env.example`
 - [ ] Test: Alloy starts cleanly with and without optional env vars
 
-## 5 — Resolve compose override pattern (alloy, hawser)
+## 5 — Resolve compose override pattern (alloy)
 
-Both stacks use "copy `compose.override.*.yaml` → `compose.override.yaml`" for mode selection (e.g. Bifrost routing). Komodo can't do manual file copies, but it supports multiple `file_paths`.
+Alloy uses "copy `compose.override.*.yaml` → `compose.override.yaml`" for mode selection (e.g. Bifrost routing). Komodo can't do manual file copies, but it supports multiple `file_paths`.
 
 - [ ] Keep override files as-is in the repo
 - [ ] Use Komodo's `file_paths` to select which compose files to apply per host:
@@ -63,14 +89,14 @@ All sensitive values (IPs, credentials, endpoints) are SOPS-encrypted in the rep
 
 **Flow:** edit secrets → `sops -e` → git push → decrypt on Core host → Komodo restart picks up changes
 
-- [ ] Install SOPS + AGE on development machine and Core host
-- [ ] Generate AGE keypair, store private key on Core host at `/etc/komodo/age.key`
-- [ ] Create `.sops.yaml` in repo root with encryption rules
-- [ ] Create `komodo/secrets.sops.yaml` with all sensitive values (IPs, passwords, endpoints)
-- [ ] Add `komodo/decrypt.sh` — decrypts `secrets.sops.yaml` → `core.config.toml` `[secrets]` block
-- [ ] Mount decrypted config into Komodo Core container
-- [ ] Add unencrypted `komodo/secrets.yaml` to `.gitignore`
-- [ ] Document secret rotation workflow in README
+- [x] Install SOPS + AGE on development machine and Core host
+- [x] Generate AGE keypair, store private key on Core host at `/etc/komodo/age.key`
+- [x] Create `.sops.yaml` in repo root with encryption rules
+- [x] Create `komodo/secrets.sops.yaml` with all sensitive values (IPs, passwords, endpoints)
+- [x] Add `komodo/decrypt.sh` — decrypts `secrets.sops.yaml` → `core.config.toml` `[secrets]` block
+- [x] Mount decrypted config into Komodo Core container
+- [x] Add unencrypted `komodo/secrets.yaml` to `.gitignore`
+- [x] Document secret rotation workflow in README
 
 **What goes into SOPS (secrets):**
 - Host IPs / WireGuard addresses
@@ -88,19 +114,11 @@ All sensitive values (IPs, credentials, endpoints) are SOPS-encrypted in the rep
 
 The TOML files that tell Komodo which stacks to deploy where, with which env vars. Secrets are referenced via `[[SECRET_NAME]]` and resolved by Core at deploy time.
 
-- [ ] `komodo/variables.toml` — non-sensitive shared variables
-- [ ] `komodo/stacks.toml` — per-host stack assignments with env overrides using `[[SECRET]]` references
+- [x] `komodo/resources/servers.toml` — server inventory for all 9 hosts
+- [x] `komodo/resources/variables.toml` — non-sensitive shared variables
+- [x] `komodo/resources/stacks.toml` — per-host stack assignments with env overrides using `[[SECRET]]` references (`backrest` still unassigned — no confirmed host yet)
 - [ ] Point Komodo ResourceSync at this repo
 - [ ] Verify: secrets interpolate correctly into stack environments
-
-## 9 — Remove Dockhand
-
-Once all stacks are managed by Komodo:
-
-- [ ] Remove `stacks/dockhand/`
-- [ ] Remove `templates/` directory and `scripts/build.ps1`
-- [ ] Remove templates build from CI pipeline
-- [ ] Update docs
 
 ---
 
@@ -116,7 +134,6 @@ immich, immich-postgres, observability, postgres, ups-monitor, vaultwarden, bifr
 | downloader | Fix CIFS volume, external network, commit config dirs | 2, 3, 6 |
 | media | Fix CIFS volumes, external network | 2, 3 |
 | alloy | Module refactor, compose override | 4, 5 |
-| hawser | Compose override | 5 |
 | authentik | Commit config dirs | 6 |
 | backrest | Commit default config | 6 |
 | homeassistant | Commit config dirs (most host-specific stack) | 6 |

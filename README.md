@@ -1,156 +1,90 @@
 # homelab-catalog
 
-Dockhand template catalog for homelab services. Each service is defined as an individual JSON file under `templates/` and automatically merged into a single `templates.json`, published as a [GitHub Release](https://github.com/st0o0/homelab-catalog/releases) asset via CI.
+A Komodo GitOps monorepo for homelab services. Every service is a Docker
+Compose stack under `stacks/<service>/`, deployed and kept in sync across
+hosts by [Komodo](https://komo.do/) — no manual `docker compose up`, no
+separate catalog UI.
 
 **Related repos:** [homelab-ansible](https://github.com/st0o0/homelab-ansible) (server provisioning) · [dotfiles](https://github.com/st0o0/dotfiles) (shell toolchain)
 
+## How it's organized
+
+```
+stacks/<service>/            WHAT is deployable — compose file, .env.example,
+                              optional README. Host-agnostic: nothing in here
+                              says which server it runs on.
+
+komodo/resources/            WHERE and WITH WHAT VALUES — ResourceSync TOML:
+├── servers.toml               every host Komodo manages
+├── stacks.toml                which stack runs on which server, with which
+│                               variables/secrets
+└── variables.toml             shared non-secret values (TZ, PUID/PGID, ...)
+
+komodo/                      Secrets, SOPS-encrypted and committed:
+├── secrets.sops.yaml           shared secrets, available as [[SECRET_NAME]]
+├── hosts/<host>/
+│   └── secrets.sops.yaml       per-host secrets, available as [[<host>_KEY]]
+└── decrypt.sh                  merges both into Komodo Core's config
+```
+
+A stack's server assignment lives in `komodo/resources/stacks.toml`, not in
+its directory path — reassigning a stack to a different host is a one-line
+TOML edit, not a file move. See [ROADMAP.md](ROADMAP.md) for what's still
+being built out and [komodo/README.md](komodo/README.md) for the full
+secrets workflow.
+
 ## Quick Start
 
-### 1. Connect to Dockhand
-
-In the Dockhand UI go to **Templates → Sources** and add a new source:
-
-| Field | Value |
-|---|---|
-| Name | `Homelab` |
-| URL | `https://st0o0.github.io/homelab-catalog/templates.json` |
-
-Dockhand fetches and caches the catalog for one hour. After adding the source, switch to the **Templates** tab to browse and deploy.
-
-For non-browser consumers (scripts, CI, curl), use the GitHub Release asset URL:
+### 1. Set up secrets
 
 ```bash
-curl -fsSL https://github.com/st0o0/homelab-catalog/releases/latest/download/templates.json
+just setup            # generates/restores your AGE key, registers it in komodo/.sops.yaml
+just secrets          # edit shared secrets (komodo/secrets.sops.yaml)
+just secrets <host>   # edit per-host secrets (komodo/hosts/<host>/secrets.sops.yaml)
 ```
 
-### 2. Deploy a Service
+See [komodo/README.md](komodo/README.md) for the full secrets workflow,
+including first-time Core host setup and secret rotation.
 
-Click any template card to open the deploy modal. Review or adjust image, ports, volumes, and environment variables, then deploy. The container is created on whichever Docker environment is selected in the Dockhand header.
+### 2. Deploy Komodo Core
 
-## Adding a New Template
-
-### Create the file
-
-Add a JSON file under `templates/<category>/` with a kebab-case filename:
-
-```
-templates/media/my-service.json
-```
-
-Minimal template for a single container:
-
-```json
-{
-  "type": 1,
-  "title": "My Service",
-  "description": "One-line description of what it does",
-  "image": "registry/image:tag",
-  "categories": ["Media"],
-  "ports": ["8080:8080/tcp"],
-  "volumes": [
-    { "bind": "/data/my-service", "container": "/config" }
-  ],
-  "env": [
-    { "name": "TZ", "label": "Timezone", "default": "Europe/Berlin" }
-  ],
-  "restart_policy": "unless-stopped"
-}
-```
-
-For a multi-container compose stack, use `type: 3` with a repository reference:
-
-```json
-{
-  "type": 3,
-  "title": "My Stack",
-  "description": "Multi-container application",
-  "categories": ["Productivity"],
-  "repository": {
-    "url": "https://github.com/user/repo",
-    "stackfile": "path/to/docker-compose.yml"
-  }
-}
-```
-
-### Validate locally
-
-```powershell
-./scripts/build.ps1              # validate + build templates.json
-./scripts/build.ps1 -ValidateOnly  # validate without writing output
-```
-
-### Commit and push
-
-Only commit your template file — CI handles the rest. Commit messages must
-follow [Conventional Commits](https://www.conventionalcommits.org/) (see
-[CONTRIBUTING.md](CONTRIBUTING.md)) so [release-please](https://github.com/googleapis/release-please)
-can pick it up correctly:
+Deploy `stacks/komodo/` on the host that will run Komodo Core (see that
+stack's `.env.example`). Once running, decrypt secrets into its config:
 
 ```bash
-git add templates/media/my-service.json
-git commit -m "feat(catalog): add my-service template"
-git push
+just decrypt           # writes /etc/komodo/core.secrets.toml on the Core host
 ```
 
-CI validates every template on each push/PR. Merging to `main` lets
-release-please open (or update) a "catalog" release PR with a generated
-CHANGELOG entry; merging *that* PR cuts a GitHub Release, which triggers a
-second job that rebuilds `templates.json` and attaches it as a release
-asset.
+### 3. Point Komodo at this repo
 
-## Field Reference
+In the Komodo UI, add a ResourceSync pointed at `komodo/resources/` in this
+repo. Komodo reads `servers.toml`, `stacks.toml`, and `variables.toml` and
+shows you the resulting sync plan — review it, then execute.
 
-| Field | Required | Type | Notes |
-|---|---|---|---|
-| `type` | yes | `1` or `3` | `1` = single container, `3` = compose stack |
-| `title` | yes | string | Display name in Dockhand |
-| `description` | no | string | Short description shown on the card |
-| `image` | yes (type 1) | string | Docker image reference (e.g. `jellyfin/jellyfin:10.11`) |
-| `logo` | no | string | URL to an icon/logo image |
-| `categories` | no | string[] | Used for filtering in the Dockhand UI |
-| `ports` | no | string[] | Format: `"host:container/proto"` (e.g. `"8080:8080/tcp"`) |
-| `volumes` | no | object[] | `{ "bind": "/host/path", "container": "/container/path" }` |
-| `env` | no | object[] | `{ "name": "VAR_NAME", "label": "Display Label", "default": "value" }` |
-| `restart_policy` | no | string | Default: `unless-stopped` |
-| `note` | no | string | Deployment notes (not shown in Dockhand, for documentation) |
-| `repository` | yes (type 3) | object | `{ "url": "https://...", "stackfile": "docker-compose.yml" }` |
+### 4. Deploy `komodo-periphery` to remaining hosts
 
-## Categories
+Every host other than Core needs a `komodo-periphery` agent so Core can
+manage it — deploy `stacks/komodo-periphery/` there manually (see that
+stack's `.env.example`).
 
-| Category | Templates |
-|---|---|
-| Monitoring | Hawser, Hawser Edge, Hawser Edge + Bifrost |
-| Networking | Bifrost |
-| Observability | Observability (central), Observability Agent, UPS Monitor |
-| Photos | Immich |
+`stacks/komodo/` and `stacks/komodo-periphery/` are deliberately **not**
+declared in `komodo/resources/stacks.toml` — Komodo has no native
+self-update for either component, so managing its own control plane
+through itself would be a chicken-and-egg risk. Deploy and update both
+manually (`docker compose pull && docker compose up -d`, Core first, then
+Periphery on every host).
 
-## How It Works
+## Adding a Stack
 
-```
-main branch                    release-please PR              GitHub Release          GitHub Pages
-┌───────────────────────┐      ┌──────────────────────┐      ┌────────────────────┐  ┌────────────────────┐
-│ templates/             │ CI   │ chore(catalog): rel.  │ merge │ tag vX.Y.Z          │  │ VitePress site     │
-│   media/jellyfin.json  │ ───► │ CHANGELOG.md          │ ───► │ templates.json      │─►│ + templates.json   │
-│   ...                  │ open │ (version bump)        │       │ (release asset)    │  │ (static asset)     │
-│ scripts/build.ps1      │  PR  │                       │      └────────────────────┘  └────────────────────┘
-└───────────────────────┘      └──────────────────────┘                                         │
-                                                                                         Dockhand fetches
-                                                                                         st0o0.github.io/homelab-catalog/templates.json
-```
-
-- **`main`** holds the source files: individual templates, the build script, CI config, and docs — never the merged `templates.json`
-- Every push to `main` updates release-please's standing "catalog" release PR (CHANGELOG + version bump), it doesn't publish anything by itself
-- Merging that release PR cuts the actual GitHub Release, rebuilds `templates.json`, attaches it as a release asset, and deploys the VitePress docs site to GitHub Pages with `templates.json` as a static asset
-- The Portainer v2 template format requires a single JSON file, so the build step is necessary
-- **`stable`** is fast-forwarded to the release tag on every release — a simple branch pointer, no extra commits
-- Server provisioning lives in a separate repo: [homelab-ansible](https://github.com/st0o0/homelab-ansible)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full walkthrough: creating a
+`stacks/<service>/` directory, validating it locally, and wiring it into
+`komodo/resources/stacks.toml`.
 
 ## Guidelines
 
 - Pin image tags where possible (e.g. `jellyfin:10.11` not `jellyfin:latest`) for reproducibility
-- Always include a `TZ` env var so timezone is configurable
+- Always support a `TZ` env var so timezone is configurable
 - Use `/data/<service-name>` as the default host bind path convention
-- Keep descriptions concise — one sentence
-- Add a `note` field for important deployment caveats (VPN routing, host network, USB passthrough)
+- Guard required env vars in compose with `${VAR:?VAR is required}` so `docker compose config` fails loudly instead of deploying with an empty value
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for additional details.
