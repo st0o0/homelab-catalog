@@ -98,7 +98,7 @@ jobs:
       - name: Build VitePress site
         run: npx vitepress build docs
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: docs/.vitepress/dist
 
