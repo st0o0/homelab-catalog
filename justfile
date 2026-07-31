@@ -53,7 +53,7 @@ exec *ARGS:
 
 # --- First-time setup ---
 
-# First-time setup: restore AGE key from Bitwarden, generate .sops.yaml
+# First-time setup: restore/generate AGE key, sync with Bitwarden, configure .sops.yaml
 setup:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -61,45 +61,7 @@ setup:
         echo "BW_SESSION not set. Run 'unlock' first."
         exit 1
     fi
-    echo "=== Restoring AGE key from Bitwarden ==="
-    AGE_KEY_DIR="$HOME/.config/sops/age"
-    AGE_KEY_FILE="$AGE_KEY_DIR/keys.txt"
-    if [ -f "$AGE_KEY_FILE" ]; then
-        echo "  AGE key already present"
-    else
-        AGE_KEY=$(bw get item "Homelab Catalog SOPS Age Key" 2>/dev/null | jq -r '.notes // empty' 2>/dev/null || true)
-        if [ -n "$AGE_KEY" ]; then
-            mkdir -p "$AGE_KEY_DIR"
-            printf '%s' "$AGE_KEY" > "$AGE_KEY_FILE"
-            chmod 600 "$AGE_KEY_FILE"
-            echo "  AGE key restored from Bitwarden"
-        else
-            echo "  No key found in Bitwarden. Generating new one..."
-            mkdir -p "$AGE_KEY_DIR"
-            age-keygen -o "$AGE_KEY_FILE" 2>&1
-            chmod 600 "$AGE_KEY_FILE"
-            echo ""
-            echo "  IMPORTANT: Save this key to Bitwarden as 'Homelab Catalog SOPS Age Key'"
-            echo "  (paste the full file content into the Notes field of a Secure Note)"
-            echo ""
-            cat "$AGE_KEY_FILE"
-            echo ""
-        fi
-    fi
-    PUB_KEY=$(grep 'public key:' "$AGE_KEY_FILE" | sed 's/.*public key: //')
-    echo ""
-    echo "  Public key: $PUB_KEY"
-    echo ""
-    echo "=== Updating .sops.yaml ==="
-    cat > komodo/.sops.yaml <<EOF
-    creation_rules:
-      - path_regex: \.sops\.yaml$
-        age: >-
-          $PUB_KEY
-    EOF
-    echo "  Updated komodo/.sops.yaml with public key"
-    echo ""
-    echo "Done. You can now run 'just secrets' to edit secrets."
+    bash scripts/init-secrets.sh
 
 # --- Secrets management ---
 
@@ -116,9 +78,10 @@ secrets TARGET="all":
     fi
     if [ ! -f "$SECRET" ]; then
         mkdir -p "$(dirname "$SECRET")"
-        cp "$TEMPLATE" /tmp/secrets.yaml
-        sops --config komodo/.sops.yaml --encrypt /tmp/secrets.yaml > "$SECRET"
-        rm /tmp/secrets.yaml
+        cp "$TEMPLATE" /tmp/secrets.sops.yaml
+        sops --config komodo/.sops.yaml --encrypt /tmp/secrets.sops.yaml > /tmp/secrets.sops.yaml.out
+        mv /tmp/secrets.sops.yaml.out "$SECRET"
+        rm /tmp/secrets.sops.yaml
         echo "Created $SECRET"
     fi
     sops --config komodo/.sops.yaml "$SECRET" || true
@@ -200,12 +163,3 @@ lint-compose:
 lint-env:
     dotenv-linter --recursive --skip UnorderedKey --skip LowercaseKey stacks
 
-# --- Build ---
-
-# Build the Portainer catalog (templates.json)
-build:
-    pwsh scripts/build.ps1
-
-# Validate templates without building
-validate:
-    pwsh scripts/build.ps1 -ValidateOnly
