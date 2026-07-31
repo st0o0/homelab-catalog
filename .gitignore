@@ -9,3 +9,7 @@ Thumbs.db
 .claude/
 node_modules/
 .devcontainer-lock.json
+
+# Secrets — only encrypted .sops.yaml files are committed
+komodo/secrets.yaml
+*.secrets.toml
